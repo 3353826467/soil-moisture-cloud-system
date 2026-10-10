@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Soil Moisture Monitor | 农田土壤墒情云端采集与数据分析系统</title>
+<meta name="description" content="Soil Moisture cloud monitoring & analysis system — 农田土壤墒情（土壤湿度/温度、空气温湿度）实时监测、灌溉决策建议与历史数据分析。ESP32 + Bemfa Cloud。" />
+<meta property="og:title" content="Soil Moisture Monitor | 农田土壤墒情云端采集与数据分析系统" />
+<meta property="og:description" content="Soil Moisture cloud monitoring & analysis system — 实时土壤墒情监测与历史数据分析。" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-title">🌱 农田土壤墒情云端采集与数据分析系统</div>
+  <nav class="topnav">
+    <a data-route="home" href="#/">首页</a>
+    <a data-route="analysis" href="#/analysis">分析</a>
+    <a data-route="settings" href="#/settings">设置</a>
+  </nav>
+</header>
+
+<main id="app">
+
+  <!-- ========================= 首页 ========================= -->
+  <section id="view-home" class="view">
+    <div class="hero">
+      <div class="hero-row">
+        <div class="hero-item">
+          <div class="hero-label">土壤墒情等级</div>
+          <div class="hero-value" id="h-level">--</div>
+        </div>
+        <div class="hero-item">
+          <div class="hero-label">土壤湿度</div>
+          <div class="hero-value"><span id="h-sh">--</span><span class="hero-unit">%</span></div>
+        </div>
+        <div class="hero-item">
+          <div class="hero-label">土壤温度</div>
+          <div class="hero-value"><span id="h-st">--</span><span class="hero-unit">℃</span></div>
+        </div>
+      </div>
+      <div class="hero-sub">主题：<span id="h-topic">--</span> · 最后更新：<span id="h-last">--</span></div>
+    </div>
+
+    <div class="advice-card" id="h-advice">
+      <div class="advice-head">
+        <div class="advice-ico" id="h-adv-ico">⏳</div>
+        <div class="advice-mid">
+          <div class="advice-title">实时灌溉决策建议</div>
+          <div class="advice-sub" id="h-adv-sub">等待数据…</div>
+        </div>
+      </div>
+      <div class="advice-detail" id="h-adv-text">请确保设备已上线。</div>
+    </div>
+
+    <div class="status-row">
+      <div class="status-cell">
+        <div class="status-icon">📡</div>
+        <div class="status-label">设备状态</div>
+        <div class="status-value" id="h-online">离线</div>
+      </div>
+      <div class="status-cell">
+        <div class="status-icon">📶</div>
+        <div class="status-label">WiFi 信号</div>
+        <div class="status-value" id="h-rssi">--</div>
+      </div>
+      <div class="status-cell">
+        <div class="status-icon">🔄</div>
+        <div class="status-label">刷新间隔</div>
+        <div class="status-value" id="h-poll">30s</div>
+      </div>
+    </div>
+
+    <div class="th-card">
+      <div class="th-card-head">
+        <span class="th-card-title">实时墒情与阈值设置</span>
+        <span class="th-card-tip">改完记得点保存</span>
+      </div>
+      <div class="th-row">
+        <div class="th-ico sh">💧</div>
+        <div class="th-mid"><div class="th-name">土壤湿度</div><div class="th-now"><span id="t-sh">--</span><span class="th-unit">%</span></div></div>
+        <div class="th-edit">
+          <input class="th-input" id="th-shLow" type="number" step="any" />
+          <span class="th-sep">~</span>
+          <input class="th-input" id="th-shHi" type="number" step="any" />
+          <span class="th-unit">%</span>
+        </div>
+      </div>
+      <div class="th-row">
+        <div class="th-ico st">🌡️</div>
+        <div class="th-mid"><div class="th-name">土壤温度</div><div class="th-now"><span id="t-st">--</span><span class="th-unit">℃</span></div></div>
+        <div class="th-edit">
+          <input class="th-input" id="th-stLow" type="number" step="any" />
+          <span class="th-sep">~</span>
+          <input class="th-input" id="th-stHi" type="number" step="any" />
+          <span class="th-unit">℃</span>
+        </div>
+      </div>
+      <div class="th-row">
+        <div class="th-ico ah">💨</div>
+        <div class="th-mid"><div class="th-name">空气湿度</div><div class="th-now"><span id="t-ah">--</span><span class="th-unit">%</span></div></div>
+        <div class="th-edit">
+          <input class="th-input" id="th-ahLow" type="number" step="any" />
+          <span class="th-sep">~</span>
+          <input class="th-input" id="th-ahHi" type="number" step="any" />
+          <span class="th-unit">%</span>
+        </div>
+      </div>
+      <div class="th-row">
+        <div class="th-ico at">☀️</div>
+        <div class="th-mid"><div class="th-name">空气温度</div><div class="th-now"><span id="t-at">--</span><span class="th-unit">℃</span></div></div>
+        <div class="th-edit">
+          <input class="th-input" id="th-atLow" type="number" step="any" />
+          <span class="th-sep">~</span>
+          <input class="th-input" id="th-atHi" type="number" step="any" />
+          <span class="th-unit">℃</span>
+        </div>
+      </div>
+      <div class="th-actions">
+        <button class="btn-thin btn-save" id="btn-save-th">💾 保存阈值</button>
+        <button class="btn-thin btn-test" id="btn-test-alarm">🔔 测试报警</button>
+      </div>
+    </div>
+
+    <div class="entry-big" id="btn-analysis">
+      <div class="entry-ico">📊</div>
+      <div class="entry-text">
+        <div class="entry-title">数据分析</div>
+        <div class="entry-sub">历史趋势 / 统计 / 相关性 / 导出 Excel·PDF</div>
+      </div>
+      <div class="entry-arrow">›</div>
+    </div>
+
+    <div class="control">
+      <div class="control-head">
+        <div class="control-title">远程控制</div>
+        <!-- 灌溉状态徽标：灌溉中绿底呼吸灯 + 已持续时长；未灌溉灰底待机 -->
+        <div class="irr-badge irr-off" id="irr-badge">
+          <span class="irr-dot"></span>
+          <span class="irr-badge-text" id="irr-badge-text">未灌溉</span>
+          <span class="irr-badge-time" id="irr-badge-time" hidden>00:00</span>
+        </div>
+      </div>
+      <!-- 灌溉中横幅：仅灌溉时显示，带水波呼吸动效 -->
+      <div class="irr-banner" id="irr-banner" hidden>
+        <span class="irr-banner-ico">💧</span>
+        <div class="irr-banner-mid">
+          <div class="irr-banner-title">正在灌溉中…</div>
+          <div class="irr-banner-sub" id="irr-banner-sub">已持续 00:00 · 点「关闭灌溉」随时停止</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-on" id="btn-irr-on">💧 启动灌溉</button>
+        <button class="btn btn-off" id="btn-irr-off">⛔ 关闭灌溉</button>
+        <button class="btn btn-refresh" id="btn-home-refresh">🔄 刷新</button>
+      </div>
+    </div>
+
+    <div class="footer">农田土壤墒情云端采集与数据分析系统</div>
+  </section>
+
+  <!-- ========================= 设置 ========================= -->
+  <section id="view-settings" class="view hidden">
+    <div class="card">
+      <div class="title">巴法云配置</div>
+      <div class="desc">填写你在 bemfa.com 后台「用户中心」私钥和主题。保存后立即生效。</div>
+      <div class="form-item">
+        <div class="label">巴法云 私钥</div>
+        <input class="input" id="set-uid" placeholder="如：0123456789abcdef0123456789abcdef" />
+      </div>
+      <div class="form-item">
+        <div class="label">设备主题</div>
+        <input class="input" id="set-topic" placeholder="如：Test01" />
+      </div>
+      <div class="hint">填写说明</div>
+      <div class="hint-list">
+        <div>· 私钥在巴法云后台 → 用户中心 复制</div>
+        <div>· 保存到本地后会自动重连，下次刷新首页即有数据</div>
+      </div>
+      <button class="btn btn-save" id="btn-save-cfg">💾 保存配置</button>
+      <button class="btn btn-clear" id="btn-clear-cfg">🗑️ 清除配置（恢复默认）</button>
+    </div>
+
+    <div class="card">
+      <div class="title">数据刷新间隔</div>
+      <div class="desc">设置首页从云端拉取传感器数据的轮询间隔。改完保存后立即生效。</div>
+      <div class="form-item">
+        <div class="label">刷新间隔（秒，1~60）</div>
+        <input class="input" id="set-poll" type="number" min="1" max="60" placeholder="如 30" />
+      </div>
+      <button class="btn btn-save" id="btn-save-poll">💾 保存刷新间隔</button>
+    </div>
+
+    <div class="card">
+      <div class="title">关于</div>
+      <div class="about-row"><span class="key">版本</span><span>v2.0（网页版）</span></div>
+      <div class="about-row"><span class="key">云平台</span><span>巴法云 bemfa.com</span></div>
+      <div class="about-row"><span class="key">设备主题</span><span id="set-topic-show">--</span></div>
+    </div>
+  </section>
+
+  <!-- ========================= 数据分析 ========================= -->
+  <section id="view-analysis" class="view hidden">
+    <div class="panel">
+      <div class="panel-title">分析时段</div>
+      <div class="date-row">
+        <div class="date-box">
+          <div class="date-label">开始时间</div>
+          <input type="date" id="an-start" class="date-input" />
+          <input type="time" id="an-start-time" class="date-input" style="margin-top:2px;" step="60" />
+        </div>
+        <div class="date-sep">至</div>
+        <div class="date-box">
+          <div class="date-label">结束时间</div>
+          <input type="date" id="an-end" class="date-input" />
+          <input type="time" id="an-end-time" class="date-input" style="margin-top:2px;" step="60" />
+        </div>
+      </div>
+      <div class="quick-row">
+        <div class="quick" data-q="today">今天</div>
+        <div class="quick" data-q="yesterday">昨天</div>
+        <div class="quick" data-q="3d">近3天</div>
+        <div class="quick" data-q="all">全部</div>
+      </div>
+      <div class="quick-row">
+        <button type="button" class="quick" id="btn-an-clearcache">清空本地缓存</button>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-row">
+        <div class="hero-item">
+          <div class="hero-label">时段样本</div>
+          <div class="hero-value"><span id="an-total">--</span><span class="hero-unit">条</span></div>
+        </div>
+        <div class="hero-item">
+          <div class="hero-label">时间跨度</div>
+          <div class="hero-value" id="an-span">--</div>
+        </div>
+        <div class="hero-item">
+          <div class="hero-label">平均间隔</div>
+          <div class="hero-value" id="an-interval">--</div>
+        </div>
+      </div>
+      <div class="hero-sub"><span id="an-range">--</span> · 更新于 <span id="an-update">--</span></div>
+    </div>
+
+
+    <div class="tabs" id="an-tabs">
+      <div class="tab tab-on" data-key="sh">土壤湿度</div>
+      <div class="tab" data-key="st">土壤温度</div>
+      <div class="tab" data-key="ah">空气湿度</div>
+      <div class="tab" data-key="at">空气温度</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title" id="an-trend-title">土壤湿度 变化趋势</div>
+      <div class="chart-wrap"><canvas id="lineChart" class="chart" title="点击放大查看"></canvas></div>
+      <div class="chart-tip" id="an-trend-tip">浅绿色带为适宜区间 45 ~ 65　共 0 个采样点</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title" id="an-stat-title">统计指标（土壤湿度 · %）</div>
+      <div class="stat-grid">
+        <div class="stat-cell"><div class="stat-label">最小值</div><div class="stat-value" id="an-min">--</div></div>
+        <div class="stat-cell"><div class="stat-label">最大值</div><div class="stat-value" id="an-max">--</div></div>
+        <div class="stat-cell"><div class="stat-label">平均值</div><div class="stat-value stat-hi" id="an-avg">--</div></div>
+        <div class="stat-cell"><div class="stat-label">中位数</div><div class="stat-value" id="an-med">--</div></div>
+        <div class="stat-cell"><div class="stat-label">标准差</div><div class="stat-value" id="an-std">--</div></div>
+        <div class="stat-cell"><div class="stat-label">变异系数</div><div class="stat-value" id="an-cv">--<span class="stat-unit">%</span></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">墒情等级分布（按土壤湿度）</div>
+      <div id="an-dist"></div>
+      <div class="dist-note" id="an-dist-note">--</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">趋势预测（ARIMA 单步滚动）</div>
+      <div id="an-forecast"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">日变化规律（土壤湿度 · 24h 均值）</div>
+      <div class="chart-wrap"><canvas id="hourlyChart" class="chart"></canvas></div>
+      <div class="chart-tip">按小时聚合的土壤湿度平均值，柱越高代表该时段越湿润</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">相关性分析（Pearson）</div>
+      <div class="corr-row"><span class="corr-k">空气温度 ↔ 土壤湿度</span><span class="corr-v" id="an-c-at_sh">--</span></div>
+      <div class="corr-row"><span class="corr-k">空气湿度 ↔ 土壤湿度</span><span class="corr-v" id="an-c-ah_sh">--</span></div>
+      <div class="corr-row"><span class="corr-k">土壤温度 ↔ 土壤湿度</span><span class="corr-v" id="an-c-st_sh">--</span></div>
+      <div class="corr-row"><span class="corr-k">空气温度 ↔ 空气湿度</span><span class="corr-v" id="an-c-at_ah">--</span></div>
+      <div class="corr-note" id="an-corr-note">--</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">相关系数矩阵（Pearson · 连续渐变热力图）</div>
+      <div class="chart-wrap corr-wrap"><canvas id="corrMatrixChart" class="chart"></canvas></div>
+      <div class="chart-tip">绿=正相关，红=负相关，颜色连续渐变（对角线=1），越深相关性越强</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">散点回归（空气湿度 vs 土壤湿度）</div>
+      <div class="chart-wrap"><canvas id="scatterChart" class="chart"></canvas></div>
+      <div class="chart-tip" id="an-scatter-tip">--</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">综合分析报告</div>
+      <div id="an-report"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-refresh" id="btn-an-refresh">重新拉取</button>
+      <button class="btn btn-export" id="btn-an-xlsx">导出 Excel</button>
+      <button class="btn btn-copy" id="btn-an-copy">复制摘要</button>
+      <button class="btn btn-pdf" id="btn-an-pdf">导出 PDF</button>
+    </div>
+
+    <div class="footer" id="an-footer">农田土壤墒情云端采集与数据分析系统</div>
+    <canvas id="pdfCanvas" class="pdf-canvas"></canvas>
+  </section>
+
+</main>
+
+<!-- 趋势图放大弹窗 -->
+<div id="trend-modal" class="modal hidden">
+  <div class="modal-backdrop" id="trend-modal-backdrop"></div>
+  <div class="modal-box">
+    <div class="modal-head">
+      <span id="zoom-title">变化趋势</span>
+      <button type="button" class="modal-close" id="trend-modal-close">✕</button>
+    </div>
+    <div class="zoom-canvas-wrap"><canvas id="zoomChart"></canvas></div>
+    <div class="modal-tip">点击空白处或按 ESC 关闭</div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="../config.js"></script>
+<script src="../config.local.js" onerror="void 0"></script>
+<script src="exceljs.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

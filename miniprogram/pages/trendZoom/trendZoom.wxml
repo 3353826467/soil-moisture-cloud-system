@@ -1,0 +1,7 @@
+<view class="wrap">
+  <view class="title">{{name}} 变化趋势</view>
+  <view class="chart-box">
+    <canvas type="2d" id="zoomChart" class="chart"></canvas>
+  </view>
+  <view class="tip">浅绿色带为适宜区间 {{bandText}}　共 {{points}} 个采样点</view>
+</view>

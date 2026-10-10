@@ -1,0 +1,224 @@
+<view class="container">
+
+  <!-- Date range picker -->
+  <view class="panel">
+    <view class="panel-title">分析时段（可精确到分）</view>
+    <view class="date-row">
+      <view class="date-box">
+        <view class="date-label">开始时间</view>
+        <picker mode="date" value="{{startDate}}" start="{{minDate}}" end="{{maxDate}}" bindchange="onStartChange">
+          <view class="date-value">{{startDate || '--'}}</view>
+        </picker>
+        <picker mode="time" value="{{startTime}}" bindchange="onStartTimeChange">
+          <view class="date-value date-time-sep">{{startTime || '--'}}</view>
+        </picker>
+      </view>
+      <view class="date-sep">至</view>
+      <view class="date-box">
+        <view class="date-label">结束时间</view>
+        <picker mode="date" value="{{endDate}}" start="{{minDate}}" end="{{maxDate}}" bindchange="onEndChange">
+          <view class="date-value">{{endDate || '--'}}</view>
+        </picker>
+        <picker mode="time" value="{{endTime}}" bindchange="onEndTimeChange">
+          <view class="date-value date-time-sep">{{endTime || '--'}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="quick-row">
+      <view class="quick {{quick === 'today' ? 'quick-on' : ''}}" data-q="today" bindtap="onQuick">今天</view>
+      <view class="quick {{quick === 'yesterday' ? 'quick-on' : ''}}" data-q="yesterday" bindtap="onQuick">昨天</view>
+      <view class="quick {{quick === '3d' ? 'quick-on' : ''}}" data-q="3d" bindtap="onQuick">近3天</view>
+    </view>
+    <view class="quick-row">
+      <view class="quick" bindtap="clearCache">清空本地缓存</view>
+    </view>
+  </view>
+
+  <!-- Overview: sample count / span / interval -->
+  <view class="hero">
+    <view class="hero-row">
+      <view class="hero-item">
+        <view class="hero-label">时段样本</view>
+        <view class="hero-value">{{total}}<text class="hero-unit">条</text></view>
+      </view>
+      <view class="hero-item">
+        <view class="hero-label">时间跨度</view>
+        <view class="hero-value" style="font-size:32rpx;">{{spanText}}</view>
+      </view>
+      <view class="hero-item">
+        <view class="hero-label">平均间隔</view>
+        <view class="hero-value" style="font-size:32rpx;">{{intervalText}}</view>
+      </view>
+    </view>
+    <view class="hero-sub">{{displayRange}} · 更新于 {{lastUpdate}}</view>
+  </view>
+
+  <!-- Metric switch -->
+  <view class="tabs">
+    <view
+      wx:for="{{metrics}}"
+      wx:key="key"
+      class="tab {{curKey === item.key ? 'tab-on' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onSwitch"
+    >{{item.name}}</view>
+  </view>
+
+  <!-- Trend chart -->
+  <view class="panel">
+    <view class="panel-title">{{curName}} 变化趋势</view>
+    <view class="chart-wrap">
+      <canvas type="2d" id="lineChart" class="chart" bindtap="onZoomTrend"></canvas>
+    </view>
+    <view class="chart-tip">点击图表可横屏放大查看 · {{curName}} 实时连续曲线 · 浅绿色带为适宜区间 {{bandText}}　共 {{points}} 个采样点</view>
+  </view>
+
+  <!-- Four-indicator time series -->
+  <view class="panel">
+    <view class="panel-title">四指标时序曲线 <text class="zoom-hint">🔍 点击放大(横屏)</text></view>
+    <view class="chart-wrap four-wrap">
+      <canvas type="2d" id="fourChart" class="chart" bindtap="onFourChartTap"></canvas>
+    </view>
+    <view class="chart-tip">土壤湿度/空气湿度（左轴 %）与 土壤温度/空气温度（右轴 ℃）的同步变化</view>
+  </view>
+
+  <!-- Statistics -->
+  <view class="panel">
+    <view class="panel-title">统计指标（{{curName}} · {{curUnit}}）</view>
+    <view class="stat-grid">
+      <view class="stat-cell">
+        <view class="stat-label">最小值</view>
+        <view class="stat-value">{{stat.min}}</view>
+      </view>
+      <view class="stat-cell">
+        <view class="stat-label">最大值</view>
+        <view class="stat-value">{{stat.max}}</view>
+      </view>
+      <view class="stat-cell">
+        <view class="stat-label">平均值</view>
+        <view class="stat-value stat-hi">{{stat.avg}}</view>
+      </view>
+      <view class="stat-cell">
+        <view class="stat-label">中位数</view>
+        <view class="stat-value">{{stat.med}}</view>
+      </view>
+      <view class="stat-cell">
+        <view class="stat-label">标准差</view>
+        <view class="stat-value">{{stat.std}}</view>
+      </view>
+      <view class="stat-cell">
+        <view class="stat-label">变异系数</view>
+        <view class="stat-value">{{stat.cv}}<text class="stat-unit">%</text></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Soil moisture level distribution -->
+  <view class="panel">
+    <view class="panel-title">墒情等级分布（按土壤湿度）</view>
+    <view class="dist" wx:for="{{dist}}" wx:key="name">
+      <view class="dist-name">{{item.name}}</view>
+      <view class="dist-bar">
+        <view class="dist-fill" style="width:{{item.pct}}%;background:{{item.color}};"></view>
+      </view>
+      <view class="dist-pct">{{item.pct}}%</view>
+      <view class="dist-cnt">{{item.count}}条</view>
+    </view>
+    <view class="dist-note">占比最高：{{topLevel}}，占比 {{topPct}}%</view>
+  </view>
+
+  <!-- Python port: ARIMA forecast -->
+  <view class="panel">
+    <view class="panel-title">趋势预测（ARIMA 单步滚动）</view>
+    <view class="fc-sub">ARIMA(0,1,1) 单步滚动预测</view>
+    <block wx:if="{{forecast.arimaEnough}}">
+      <view class="fc-row"><text class="fc-k">预测下一时刻土壤湿度</text><text class="fc-v">{{forecast.arimaNext}}%（{{forecast.arimaLevel}}）</text></view>
+      <view class="fc-row"><text class="fc-k">95% 预测区间（±1.96s）</text><text class="fc-v">{{forecast.arimaLo}}% ~ {{forecast.arimaHi}}%</text></view>
+      <view class="fc-row"><text class="fc-k">平滑系数 θ</text><text class="fc-v">{{forecast.arimaTheta}}</text></view>
+      <view class="fc-row"><text class="fc-k">样本内预测 RMSE</text><text class="fc-v">{{forecast.arimaRmse}}%</text></view>
+    </block>
+    <view class="fc-note" wx:else>样本不足 4 条，暂无法建立 ARIMA 预测</view>
+  </view>
+
+  <!-- Python port: daily pattern -->
+  <view class="panel">
+    <view class="panel-title">日变化规律（土壤湿度 · 24h 均值）</view>
+    <view class="chart-wrap">
+      <canvas type="2d" id="hourlyChart" class="chart"></canvas>
+    </view>
+    <view class="chart-tip">按小时聚合的土壤湿度平均值，柱越高代表该时段越湿润</view>
+  </view>
+
+  <!-- Correlation -->
+  <view class="panel">
+    <view class="panel-title">相关性分析（Pearson）</view>
+    <view class="corr-row">
+      <text class="corr-k">空气温度 ↔ 土壤湿度</text>
+      <text class="corr-v {{corrClass.at_sh}}">{{corr.at_sh}}</text>
+    </view>
+    <view class="corr-row">
+      <text class="corr-k">空气湿度 ↔ 土壤湿度</text>
+      <text class="corr-v {{corrClass.ah_sh}}">{{corr.ah_sh}}</text>
+    </view>
+    <view class="corr-row">
+      <text class="corr-k">土壤温度 ↔ 土壤湿度</text>
+      <text class="corr-v {{corrClass.st_sh}}">{{corr.st_sh}}</text>
+    </view>
+    <view class="corr-row">
+      <text class="corr-k">空气温度 ↔ 空气湿度</text>
+      <text class="corr-v {{corrClass.at_ah}}">{{corr.at_ah}}</text>
+    </view>
+    <view class="corr-note">{{corrNote}}</view>
+  </view>
+
+  <!-- Python port: correlation matrix heatmap -->
+  <view class="panel">
+    <view class="panel-title">相关系数矩阵（Pearson · 连续渐变热力图）</view>
+    <view class="chart-wrap corr-wrap">
+      <canvas type="2d" id="corrMatrixChart" class="chart"></canvas>
+    </view>
+    <view class="chart-tip">绿=正相关，红=负相关，颜色连续渐变（对角线=1），越深相关性越强</view>
+  </view>
+
+  <!-- Python port: scatter regression -->
+  <view class="panel">
+    <view class="panel-title">散点回归（空气湿度 vs 土壤湿度）</view>
+    <view class="chart-wrap">
+      <canvas type="2d" id="scatterChart" class="chart"></canvas>
+    </view>
+    <block wx:if="{{scatter.enough}}">
+      <view class="fc-row"><text class="fc-k">回归方程</text><text class="fc-v">y={{scatter.slope}}x+{{scatter.intercept}}</text></view>
+      <view class="fc-row"><text class="fc-k">R²</text><text class="fc-v">{{scatter.r2}}</text></view>
+    </block>
+    <view class="chart-tip" wx:else>样本不足，暂无法绘制回归</view>
+  </view>
+
+  <!-- Python port: integrated report -->
+  <view class="panel">
+    <view class="panel-title">综合分析报告</view>
+    <view class="report" wx:for="{{reportLines}}" wx:key="index">{{item}}</view>
+  </view>
+
+  <view class="btn-row">
+    <button class="btn btn-refresh" bindtap="onRefresh">重新拉取</button>
+    <button class="btn btn-export"  bindtap="onExportExcel">导出 Excel</button>
+    <button class="btn btn-copy"    bindtap="onCopy">复制摘要</button>
+    <button class="btn btn-pdf"     bindtap="onExportPdf">导出 PDF</button>
+    <button class="btn btn-four"    bindtap="onSaveFourChart">保存时序图</button>
+  </view>
+
+  <view class="footer" wx:if="{{loading}}">正在拉取历史数据…</view>
+  <view class="footer" wx:elif="{{empty}}">该分析时段没有数据，请调整范围</view>
+  <view class="footer" wx:else>农田土壤墒情云端采集与数据分析系统</view>
+
+  <!-- offscreen canvas used only for PDF export -->
+  <canvas type="2d" id="pdfCanvas" class="pdf-canvas"></canvas>
+
+  <!-- 全屏横屏放大查看时序图 -->
+  <view class="four-zoom-mask" wx:if="{{fourZoom}}" bindtap="onCloseFourZoom">
+    <view class="four-zoom-tip">点击空白处退出横屏</view>
+    <canvas type="2d" id="fourChartZoom" class="four-zoom-canvas"></canvas>
+    <view class="four-zoom-close" catchtap="onCloseFourZoom">✕ 关闭</view>
+  </view>
+
+</view>

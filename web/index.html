@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>农田土壤墒情云端采集与数据分析系统</title>
+<meta name="description" content="农田土壤墒情云端采集与数据分析系统 — 实时土壤湿度/温度、空气温湿度监测、灌溉决策建议与历史数据分析。ESP32 + 巴法云 MQTT。" />
+<link rel="stylesheet" href="style.css?v=20260913e" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+</head>
+<body class="tech-body">
+
+<!-- ====== 顶栏 logo+状态 ====== -->
+<header class="tech-topbar">
+  <div class="tech-brand">
+    <div class="tech-brand-mark"><svg class="tech-sprout" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="32" cy="32" r="30" fill="#cfeaf3"/>
+        <!-- 土壤堆 -->
+        <path d="M14 44 Q22 38 32 38 Q42 38 50 44 L50 50 L14 50 Z" fill="#7a4632"/>
+        <ellipse cx="32" cy="38" rx="18" ry="3" fill="#5e3322"/>
+        <!-- 主茎 -->
+        <path d="M32 38 Q32 30 32 22" stroke="#3aa17e" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+        <!-- 左叶 -->
+        <path d="M32 28 C20 28 16 18 18 14 C26 14 32 22 32 28 Z" fill="#5fc59a"/>
+        <path d="M32 28 C24 26 20 22 19 16" stroke="#2e8b6b" stroke-width="1" fill="none" opacity=".55"/>
+        <!-- 右叶 -->
+        <path d="M32 26 C44 26 48 16 46 12 C38 12 32 20 32 26 Z" fill="#3aa17e"/>
+        <path d="M32 26 C40 24 44 20 45 14" stroke="#2e8b6b" stroke-width="1" fill="none" opacity=".55"/>
+        <!-- 嫩尖 -->
+        <circle cx="32" cy="22" r="1.8" fill="#7fd9b0"/>
+      </svg></div>
+    <div class="tech-brand-text">
+      <div class="tech-brand-cn">农田土壤墒情云端采集与数据分析系统</div>
+    </div>
+  </div>
+  <div class="tech-topbar-right">
+    <div class="tech-clock">🕐 <span id="techClock">--</span></div>
+    <div class="tech-online"><span class="tech-dot tech-dot-live"></span>SYSTEM ONLINE</div>
+  </div>
+</header>
+
+<div class="tech-layout">
+
+  <!-- ====== 左侧导航 ====== -->
+  <aside class="tech-side">
+    <div class="tech-side-title">▎ 导航</div>
+
+    <a class="tech-side-link" data-route="home" href="#/">
+      <span class="tech-side-ico">📊</span>
+      <span class="tech-side-text">
+        <span class="tech-side-main">数据大屏</span>
+      </span>
+    </a>
+    <a class="tech-side-link" data-route="analysis" href="#/analysis">
+      <span class="tech-side-ico">📈</span>
+      <span class="tech-side-text">
+        <span class="tech-side-main">数据分析</span>
+      </span>
+    </a>
+    <a class="tech-side-link" data-route="threshold" href="#/threshold">
+      <span class="tech-side-ico">🔧</span>
+      <span class="tech-side-text">
+        <span class="tech-side-main">阈值设置</span>
+      </span>
+    </a>
+    <a class="tech-side-link" data-route="settings" href="#/settings">
+      <span class="tech-side-ico">⚙️</span>
+      <span class="tech-side-text">
+        <span class="tech-side-main">系统设置</span>
+      </span>
+    </a>
+
+    <!-- 侧栏设备/网络状态（紧凑版 · 从主区挪来） -->
+    <div class="tech-side-status">
+      <div class="tech-side-status-head">
+        <span class="tech-side-status-title">📡 设备 / 网络</span>
+        <span class="tech-side-status-tag">LIVE</span>
+      </div>
+      <div class="tech-side-status-row">
+        <span class="tech-side-status-k">设备</span>
+        <span class="tech-side-status-v" id="h-online">离线</span>
+      </div>
+      <div class="tech-side-status-row">
+        <span class="tech-side-status-k">WiFi 信号</span>
+        <span class="tech-side-status-v" id="h-rssi">--</span>
+      </div>
+      <div class="tech-side-status-row">
+        <span class="tech-side-status-k">页面刷新</span>
+        <span class="tech-side-status-v" id="h-poll">30 s</span>
+      </div>
+      <div class="tech-side-status-row">
+        <span class="tech-side-status-k">主题</span>
+        <span class="tech-side-status-v tech-side-status-tiny" id="h-topic">--</span>
+      </div>
+      <div class="tech-side-status-row">
+        <span class="tech-side-status-k">最后更新</span>
+        <span class="tech-side-status-v tech-side-status-tiny" id="h-last">--</span>
+        <span id="h-fresh" style="margin-left:6px;font-size:11px;font-weight:600;color:#94a3b8;"></span>
+      </div>
+    </div>
+
+    <div class="tech-side-foot">‹ 收起</div>
+  </aside>
+
+  <!-- ====== 占位 nav（app.js 仍按 .topnav a 切 active） ====== -->
+  <nav class="topnav tech-hidden-proxy" aria-hidden="true">
+    <a data-route="home" href="#/">首页</a>
+    <a data-route="analysis" href="#/analysis">分析</a>
+    <a data-route="threshold" href="#/threshold">阈值</a>
+    <a data-route="settings" href="#/settings">设置</a>
+  </nav>
+
+  <!-- ====== 主区 ========= -->
+  <main id="app">
+
+    <!-- =============== 首页 =============== -->
+    <section id="view-home" class="view">
+
+      <div class="tech-section-head">
+        <div class="tech-section-title"><span class="tech-section-bar"></span>数据大屏</div>
+        <div class="tech-section-status">📡 MQTT LINK · <span id="h-online-mini">--</span></div>
+      </div>
+
+      <!-- KPI 四卡 -->
+      <div class="tech-kpi-grid">
+        <div class="tech-kpi tech-kpi-sh">
+          <div class="tech-kpi-head">
+            <span class="tech-kpi-label">土壤湿度</span>
+          </div>
+          <div class="tech-kpi-body">
+            <div class="tech-kpi-num"><span id="h-sh">--</span><span class="tech-kpi-unit">%</span></div>
+            <div class="tech-kpi-ring" id="h-sh-ring">
+              <svg viewBox="0 0 100 100"><circle class="tech-ring-bg" cx="50" cy="50" r="42"/><circle class="tech-ring-fg" cx="50" cy="50" r="42" id="h-sh-ring-fg" stroke-dasharray="263.9" stroke-dashoffset="263.9"/></svg>
+              <div class="tech-kpi-ring-pct" id="h-sh-pct">--%</div>
+            </div>
+          </div>
+          <div class="tech-kpi-foot">阈值 <span id="h-sh-thr">--</span> · 适宜区间</div>
+        </div>
+
+        <div class="tech-kpi tech-kpi-st">
+          <div class="tech-kpi-head">
+            <span class="tech-kpi-label">土壤温度</span>
+          </div>
+          <div class="tech-kpi-body">
+            <div class="tech-kpi-num"><span id="h-st">--</span><span class="tech-kpi-unit">℃</span></div>
+            <div class="tech-kpi-aux"><span id="h-st-tag">--</span></div>
+          </div>
+          <div class="tech-kpi-foot">阈值 <span id="h-st-thr">--</span> · 适宜区间</div>
+        </div>
+
+        <div class="tech-kpi tech-kpi-ah">
+          <div class="tech-kpi-head">
+            <span class="tech-kpi-label">空气湿度</span>
+          </div>
+          <div class="tech-kpi-body">
+            <div class="tech-kpi-num"><span id="h-ah">--</span><span class="tech-kpi-unit">%</span></div>
+            <div class="tech-kpi-bar"><div class="tech-kpi-bar-fg" id="h-ah-bar" style="width:0%"></div></div>
+          </div>
+          <div class="tech-kpi-foot">阈值 <span id="h-ah-thr">--</span> · 适宜区间</div>
+        </div>
+
+        <div class="tech-kpi tech-kpi-at">
+          <div class="tech-kpi-head">
+            <span class="tech-kpi-label">空气温度</span>
+          </div>
+          <div class="tech-kpi-body">
+            <div class="tech-kpi-num"><span id="h-at">--</span><span class="tech-kpi-unit">℃</span></div>
+            <div class="tech-kpi-aux"><span id="h-at-tag">--</span></div>
+          </div>
+          <div class="tech-kpi-foot">阈值 <span id="h-at-thr">--</span> · 适宜区间</div>
+        </div>
+      </div>
+
+<!-- 决策（单卡，状态卡已挪到左侧导航下方） -->
+<div class="tech-card tech-card-advice">
+  <div class="tech-card-head">
+    <span class="tech-card-title">🌱 实时灌溉决策建议</span>
+    <span class="tech-card-tag" id="h-adv-tag">实时</span>
+  </div>
+  <div id="h-advice" class="tech-advice">
+    <div class="tech-advice-ico" id="h-adv-ico">⏳</div>
+    <div class="tech-advice-mid">
+      <div class="tech-advice-title" id="h-level">等待数据…</div>
+      <div class="tech-advice-sub" id="h-adv-sub">正在连接巴法云 MQTT…</div>
+      <div class="tech-advice-detail" id="h-adv-text">请确保设备已上线。</div>
+    </div>
+  </div>
+</div>
+
+      <!-- 当日实时时序曲线（数据大屏专属） -->
+      <div class="tech-card tech-card-home-four">
+        <div class="tech-card-head">
+          <span class="tech-card-title">📈 今日实时时序曲线</span>
+          <button class="tech-btn tech-btn-blue tech-btn-sm" id="btn-home-refresh">🔄 刷新数据</button>
+        </div>
+        <div class="chart-wrap four-chart-wrap"><canvas id="homeFourChart"></canvas></div>
+        <div class="chart-tip" id="home-four-tip">正在拉取今日实时数据…</div>
+      </div>
+
+      <!-- 远程控制 -->
+      <div class="tech-card tech-card-control">
+        <div class="tech-card-head">
+          <span class="tech-card-title">🎛️ 远程灌溉控制</span>
+          <div class="irr-badge irr-off" id="irr-badge">
+            <span class="irr-dot"></span>
+            <span class="irr-badge-text" id="irr-badge-text">未灌溉</span>
+            <span class="irr-badge-time" id="irr-badge-time" hidden>00:00</span>
+          </div>
+        </div>
+        <div class="irr-banner" id="irr-banner" hidden>
+          <span class="irr-banner-ico">💧</span>
+          <div class="irr-banner-mid">
+            <div class="irr-banner-title">正在灌溉中…</div>
+            <div class="irr-banner-sub" id="irr-banner-sub">已持续 00:00 · 点「关闭灌溉」随时停止</div>
+          </div>
+        </div>
+        <div class="tech-btn-row">
+          <button class="tech-btn tech-btn-green tech-btn-lg" id="btn-irr-on">💧 启动灌溉</button>
+          <button class="tech-btn tech-btn-red tech-btn-lg" id="btn-irr-off">⛔ 关闭灌溉</button>
+          <button class="tech-btn tech-btn-purple tech-btn-lg" id="btn-test-alarm">🔔 测试报警</button>
+        </div>
+        <div class="tech-entry" id="btn-analysis">
+          <div class="tech-entry-ico">📊</div>
+          <div class="tech-entry-text">
+            <div class="tech-entry-title">进入数据分析</div>
+            <div class="tech-entry-sub">历史趋势 · 统计 · 相关性 · 趋势预测 · 数据导出</div>
+          </div>
+          <div class="tech-entry-arrow">›</div>
+        </div>
+      </div>
+
+      <div class="tech-footer">© 2026 · 农田土壤墒情云端采集与数据分析系统</div>
+    </section>
+
+    <!-- =============== 数据分析 =============== -->
+    <section id="view-analysis" class="view hidden">
+
+      <div class="tech-section-head">
+        <div class="tech-section-title"><span class="tech-section-bar"></span>数据分析</div>
+        <div class="tech-section-status">📊 Topic: <span id="an-topic">--</span> · <span id="an-update-mini">--</span></div>
+      </div>
+
+      <!-- 分析时段 -->
+      <div class="tech-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title">⏱️ 分析时段</span>
+          <span class="tech-card-tip">选择起止时间 / 快捷区间</span>
+        </div>
+        <div class="date-row">
+          <div class="date-box">
+            <div class="date-label">开始时间</div>
+            <input type="date" id="an-start" class="date-input" />
+            <input type="time" id="an-start-time" class="date-input" style="margin-top:2px;" step="60" />
+          </div>
+          <div class="date-sep">至</div>
+          <div class="date-box">
+            <div class="date-label">结束时间</div>
+            <input type="date" id="an-end" class="date-input" />
+            <input type="time" id="an-end-time" class="date-input" style="margin-top:2px;" step="60" />
+          </div>
+        </div>
+        <div class="quick-row">
+          <div class="quick" data-q="today">今天</div>
+          <div class="quick" data-q="yesterday">昨天</div>
+          <div class="quick" data-q="3d">近3天</div>
+        </div>
+        <div class="quick-row quick-row-mode">
+          <div class="quick quick-mode mode-on" data-mode="cloud" id="mode-cloud" title="自动：分析历史日期时从云端数据库读取">🗄️ 云端数据库</div>
+          <div class="quick quick-mode" data-mode="bemfa" id="mode-bemfa" title="自动：分析今天/未来日期时从巴法云实时拉取，每 30 秒更新">⚡ 巴法云 (30s)</div>
+          <button type="button" class="quick" id="btn-an-clearcache">清空本地缓存</button>
+        </div>
+      </div>
+
+      <!-- 关键指标（紧凑 1 行 4 卡） -->
+      <div class="tech-kpi-grid tech-kpi-grid-mini tech-kpi-grid-compact">
+        <div class="tech-kpi tech-kpi-mini">
+          <div class="tech-kpi-head"><span class="tech-kpi-label">时段样本</span></div>
+          <div class="tech-kpi-num tech-kpi-num-mid"><span id="an-total">--</span><span class="tech-kpi-unit">条</span></div>
+          <div class="tech-kpi-foot" id="an-range">--</div>
+        </div>
+        <div class="tech-kpi tech-kpi-mini">
+          <div class="tech-kpi-head"><span class="tech-kpi-label">时间跨度</span></div>
+          <div class="tech-kpi-num tech-kpi-num-mid" id="an-span">--</div>
+        </div>
+        <div class="tech-kpi tech-kpi-mini">
+          <div class="tech-kpi-head"><span class="tech-kpi-label">平均间隔</span></div>
+          <div class="tech-kpi-num tech-kpi-num-mid" id="an-interval">--</div>
+        </div>
+        <div class="tech-kpi tech-kpi-mini">
+          <div class="tech-kpi-head"><span class="tech-kpi-label">更新时间</span></div>
+          <div class="tech-kpi-num tech-kpi-num-thin" id="an-update">--</div>
+        </div>
+      </div>
+
+      <div class="tech-tabs" id="an-tabs">
+        <div class="tab tech-tab tab-on" data-key="sh">土壤湿度</div>
+        <div class="tab tech-tab" data-key="st">土壤温度</div>
+        <div class="tab tech-tab" data-key="ah">空气湿度</div>
+        <div class="tab tech-tab" data-key="at">空气温度</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title" id="an-trend-title">土壤湿度 变化趋势</span>
+          <span class="tech-card-tag">趋势图</span>
+        </div>
+        <div class="chart-wrap"><canvas id="lineChart" class="chart" title="点击放大查看"></canvas></div>
+        <div class="chart-tip" id="an-trend-tip">浅绿色带为适宜区间 45 ~ 65　共 0 个采样点</div>
+      </div>
+
+      <div class="tech-card" id="an-four-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title">📈 四指标时序曲线</span>
+          <span class="tech-card-tag tech-card-tag-cyan">TIME SERIES</span>
+        </div>
+        <div class="chart-wrap four-chart-wrap"><canvas id="fourChart"></canvas></div>
+        <div class="chart-tip">土壤湿度 / 空气湿度（左轴 %）与 土壤温度 / 空气温度（右轴 °C）的同步变化</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title" id="an-stat-title">统计指标（土壤湿度 · %）</span>
+          <span class="tech-card-tag">STATS</span>
+        </div>
+        <div class="tech-stat-grid">
+          <div class="tech-stat-cell"><div class="tech-stat-label">最小值</div><div class="tech-stat-value" id="an-min">--</div></div>
+          <div class="tech-stat-cell"><div class="tech-stat-label">最大值</div><div class="tech-stat-value" id="an-max">--</div></div>
+          <div class="tech-stat-cell tech-stat-hi"><div class="tech-stat-label">平均值</div><div class="tech-stat-value" id="an-avg">--</div></div>
+          <div class="tech-stat-cell"><div class="tech-stat-label">中位数</div><div class="tech-stat-value" id="an-med">--</div></div>
+          <div class="tech-stat-cell"><div class="tech-stat-label">标准差</div><div class="tech-stat-value" id="an-std">--</div></div>
+          <div class="tech-stat-cell"><div class="tech-stat-label">变异系数</div><div class="tech-stat-value" id="an-cv">--<span class="tech-stat-unit">%</span></div></div>
+        </div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title">🌾 墒情等级分布（按土壤湿度）</span>
+          <span class="tech-card-tag">DISTRIBUTION</span>
+        </div>
+        <div id="an-dist"></div>
+        <div class="dist-note" id="an-dist-note">--</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title">🔮 趋势预测（ARIMA 单步滚动）</span>
+          <span class="tech-card-tag tech-card-tag-cyan">FORECAST</span>
+        </div>
+        <div id="an-forecast"></div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title">⏰ 日变化规律（土壤湿度 · 24h 均值）</span>
+          <span class="tech-card-tag">HOURLY</span>
+        </div>
+        <div class="chart-wrap"><canvas id="hourlyChart" class="chart"></canvas></div>
+        <div class="chart-tip">按小时聚合的土壤湿度平均值，柱越高代表该时段越湿润</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title">🔗 相关性分析（Pearson）</span>
+          <span class="tech-card-tag">CORRELATION</span>
+        </div>
+        <div class="corr-row"><span class="corr-k">空气温度 ↔ 土壤湿度</span><span class="corr-v" id="an-c-at_sh">--</span></div>
+        <div class="corr-row"><span class="corr-k">空气湿度 ↔ 土壤湿度</span><span class="corr-v" id="an-c-ah_sh">--</span></div>
+        <div class="corr-row"><span class="corr-k">土壤温度 ↔ 土壤湿度</span><span class="corr-v" id="an-c-st_sh">--</span></div>
+        <div class="corr-row"><span class="corr-k">空气温度 ↔ 空气湿度</span><span class="corr-v" id="an-c-at_ah">--</span></div>
+        <div class="corr-note" id="an-corr-note">--</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title">🧮 相关系数矩阵（Pearson · 热力图）</span>
+          <span class="tech-card-tag">MATRIX</span>
+        </div>
+        <div class="chart-wrap corr-wrap"><canvas id="corrMatrixChart" class="chart"></canvas></div>
+        <div class="chart-tip">绿=正相关，红=负相关，颜色连续渐变（对角线=1），越深相关性越强</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title">📉 散点回归（空气湿度 vs 土壤湿度）</span>
+          <span class="tech-card-tag">SCATTER</span>
+        </div>
+        <div class="chart-wrap"><canvas id="scatterChart" class="chart"></canvas></div>
+        <div class="chart-tip" id="an-scatter-tip">--</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title">📜 综合分析报告</span>
+          <span class="tech-card-tag tech-card-tag-cyan">REPORT</span>
+        </div>
+        <div id="an-report"></div>
+      </div>
+
+      <div class="tech-btn-row">
+        <button class="tech-btn tech-btn-blue" id="btn-an-refresh">🔄 重新拉取</button>
+        <button class="tech-btn tech-btn-warn" id="btn-an-xlsx">📥 导出 Excel</button>
+        <button class="tech-btn tech-btn-green" id="btn-an-copy">📋 复制摘要</button>
+        <button class="tech-btn tech-btn-purple" id="btn-an-pdf">📄 导出 PDF</button>
+        <button class="tech-btn tech-btn-cyan" id="btn-an-chart">💾 保存时序图</button>
+      </div>
+
+      <div class="tech-footer" id="an-footer">© 2026 · 农田土壤墒情云端采集与数据分析系统</div>
+      <canvas id="pdfCanvas" class="pdf-canvas"></canvas>
+    </section>
+
+    <!-- =============== 设置 =============== -->
+    <section id="view-settings" class="view hidden">
+      <div class="tech-section-head">
+        <div class="tech-section-title"><span class="tech-section-bar"></span>系统设置</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head"><span class="tech-card-title">🔌 巴法云配置</span></div>
+        <div class="tech-card-desc">填写你在 bemfa.com 后台「用户中心」私钥和主题。保存后立即生效。</div>
+        <div class="form-item">
+          <div class="label">巴法云 私钥</div>
+          <input class="tech-input" id="set-uid" placeholder="如：0123456789abcdef0123456789abcdef" />
+        </div>
+        <div class="form-item">
+          <div class="label">设备主题</div>
+          <input class="tech-input" id="set-topic" placeholder="如：Test01" />
+        </div>
+        <div class="hint">填写说明</div>
+        <div class="hint-list">
+          <div>· 私钥在巴法云后台 → 用户中心 复制</div>
+          <div>· 保存到本地后会自动重连，下次刷新首页即有数据</div>
+        </div>
+        <button class="tech-btn tech-btn-warn" id="btn-save-cfg">💾 保存配置</button>
+        <button class="tech-btn tech-btn-grey" id="btn-clear-cfg" style="margin-top:8px;">🗑️ 清除配置（恢复默认）</button>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head"><span class="tech-card-title">⏱️ 数据刷新间隔</span></div>
+        <div class="tech-card-desc">设置首页从云端拉取传感器数据的轮询间隔。改完保存后立即生效。</div>
+        <div class="form-item">
+          <div class="label">刷新间隔（秒，1~60）</div>
+          <input class="tech-input" id="set-poll" type="number" min="1" max="60" placeholder="如 30" />
+        </div>
+        <button class="tech-btn tech-btn-warn" id="btn-save-poll">💾 保存刷新间隔</button>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head"><span class="tech-card-title">☁️ 云端历史（CloudBase）</span></div>
+        <div class="form-item">
+          <div class="label">云函数地址</div>
+          <input class="tech-input" id="set-cloud-base" placeholder="https://xxx.service.tcloudbase.com/getHistory" />
+        </div>
+        <div class="form-item">
+          <div class="label">访问令牌（未设置则留空）</div>
+          <input class="tech-input" id="set-cloud-token" placeholder="云函数 ACCESS_TOKEN" />
+        </div>
+        <button class="tech-btn tech-btn-warn" id="btn-save-cloud">💾 保存云端配置</button>
+        <button class="tech-btn tech-btn-grey" id="btn-test-cloud" style="margin-top:8px;">🔍 测试连接</button>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head"><span class="tech-card-title">ℹ️ 关于</span></div>
+        <div class="about-row"><span class="key">版本</span><span>v2.0 · 网页版</span></div>
+        <div class="about-row"><span class="key">云平台</span><span>巴法云 bemfa.com</span></div>
+        <div class="about-row"><span class="key">设备主题</span><span id="set-topic-show">--</span></div>
+        <div class="about-row"><span class="key">前端框架</span><span>HTML · JS · Canvas</span></div>
+      </div>
+
+      <div class="tech-footer">© 2026 · 农田土壤墒情云端采集与数据分析系统</div>
+    </section>
+
+    <!-- =============== 阈值设置 =============== -->
+    <section id="view-threshold" class="view hidden">
+      <div class="tech-section-head">
+        <div class="tech-section-title"><span class="tech-section-bar"></span>阈值设置</div>
+        <div class="tech-section-status">🔧 实时阈值 · 改完点保存</div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title">🌱 实时墒情与阈值</span>
+          <span class="tech-card-tip">当前值随设备上报同步</span>
+        </div>
+
+        <div class="tech-th-row">
+          <div class="tech-th-ico sh">💧</div>
+          <div class="tech-th-mid"><div class="tech-th-name">土壤湿度</div><div class="tech-th-now"><span id="t-sh">--</span><span class="tech-th-unit">%</span></div></div>
+          <div class="tech-th-edit">
+            <input class="tech-th-input" id="th-shLow" type="number" step="any" title="轻旱线（轻旱↔适宜）" />
+            <span class="tech-th-sep">~</span>
+            <input class="tech-th-input" id="th-shOpt" type="number" step="any" title="适宜上界（适宜↔过湿）" />
+            <span class="tech-th-unit">%</span>
+          </div>
+        </div>
+        <div class="tech-th-row">
+          <div class="tech-th-ico st">🌡️</div>
+          <div class="tech-th-mid"><div class="tech-th-name">土壤温度</div><div class="tech-th-now"><span id="t-st">--</span><span class="tech-th-unit">℃</span></div></div>
+          <div class="tech-th-edit">
+            <input class="tech-th-input" id="th-stLow" type="number" step="any" />
+            <span class="tech-th-sep">~</span>
+            <input class="tech-th-input" id="th-stHi" type="number" step="any" />
+            <span class="tech-th-unit">℃</span>
+          </div>
+        </div>
+        <div class="tech-th-row">
+          <div class="tech-th-ico ah">💨</div>
+          <div class="tech-th-mid"><div class="tech-th-name">空气湿度</div><div class="tech-th-now"><span id="t-ah">--</span><span class="tech-th-unit">%</span></div></div>
+          <div class="tech-th-edit">
+            <input class="tech-th-input" id="th-ahLow" type="number" step="any" />
+            <span class="tech-th-sep">~</span>
+            <input class="tech-th-input" id="th-ahHi" type="number" step="any" />
+            <span class="tech-th-unit">%</span>
+          </div>
+        </div>
+        <div class="tech-th-row">
+          <div class="tech-th-ico at">☀️</div>
+          <div class="tech-th-mid"><div class="tech-th-name">空气温度</div><div class="tech-th-now"><span id="t-at">--</span><span class="tech-th-unit">℃</span></div></div>
+          <div class="tech-th-edit">
+            <input class="tech-th-input" id="th-atLow" type="number" step="any" />
+            <span class="tech-th-sep">~</span>
+            <input class="tech-th-input" id="th-atHi" type="number" step="any" />
+            <span class="tech-th-unit">℃</span>
+          </div>
+        </div>
+        <div class="tech-th-actions">
+          <button class="tech-btn tech-btn-warn" id="btn-save-th">💾 保存阈值</button>
+        </div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head"><span class="tech-card-title">ℹ️ 说明</span></div>
+        <div class="about-row"><span class="key">土壤湿度</span><span>轻旱线 ↓ 适宜区 ↓ 过湿线；积水线由系统按「适宜带宽度镜像」自动派生</span></div>
+        <div class="about-row"><span class="key">温度/湿度</span><span>填写适宜区间上下界，越界后在决策建议中同步提示</span></div>
+      </div>
+
+      <div class="tech-footer">© 2026 · 农田土壤墒情云端采集与数据分析系统</div>
+    </section>
+
+  </main>
+</div>
+
+<!-- 趋势图放大弹窗 -->
+<div id="trend-modal" class="modal hidden">
+  <div class="modal-backdrop" id="trend-modal-backdrop"></div>
+  <div class="modal-box">
+    <div class="modal-head">
+      <span id="zoom-title">变化趋势</span>
+      <button type="button" class="modal-close" id="trend-modal-close">✕</button>
+    </div>
+    <div class="zoom-canvas-wrap"><canvas id="zoomChart"></canvas></div>
+    <div class="modal-tip">点击空白处或按 ESC 关闭</div>
+  </div>
+</div>
+
+<!-- 四指标时序图放大弹窗（点击数据大屏/分析页的时序图打开） -->
+<div id="chart-zoom-modal" class="modal hidden">
+  <div class="modal-backdrop" id="chart-zoom-backdrop"></div>
+  <div class="modal-box">
+    <div class="modal-head">
+      <span id="chart-zoom-title">时序曲线（放大查看）</span>
+      <button type="button" class="modal-close" id="chart-zoom-close">✕</button>
+    </div>
+    <div class="chart-zoom-wrap"><canvas id="chartZoomCanvas"></canvas></div>
+    <div class="modal-tip">点击空白处或按 ESC 关闭 · 可滚动查看细节</div>
+  </div>
+</div>
+
+<div id="toast" class="tech-toast hidden"></div>
+
+<script src="config.js"></script>
+<!-- 本地私有配置（可选，不存在时静默忽略）-->
+<script src="config.local.js" onerror="void 0"></script>
+<script src="exceljs.min.js?v=20260911b"></script>
+<script src="chart.min.js?v=20260913e"></script>
+<script src="app.js?v=20260913e"></script>
+<script>
+/* === 顶栏时钟 === */
+(function () {
+  const el = document.getElementById('techClock');
+  if (!el) return;
+  function tick() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const date = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    const time = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    el.textContent = date + ' ' + time;
+  }
+  tick(); setInterval(tick, 1000);
+})();
+
+/* === 镜像 app.js 的 .topnav a.active 到左侧导航 .tech-side-link === */
+(function () {
+  const proxy = document.querySelector('.topnav');
+  const sides = document.querySelectorAll('.tech-side-link');
+  function sync() {
+    sides.forEach(s => {
+      const a = proxy && proxy.querySelector('a[data-route="' + s.dataset.route + '"]');
+      s.classList.toggle('tech-side-on', !!(a && a.classList.contains('active')));
+    });
+  }
+  sync();
+  if (proxy) new MutationObserver(sync).observe(proxy, { subtree: true, attributes: true, attributeFilter: ['class'], childList: true });
+})();
+</script>
+</body>
+</html>

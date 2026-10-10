@@ -1,0 +1,448 @@
+/* pages/analysis/analysis.wxss
+   NOTE: keep this file 100% ASCII.
+   WeChat devtools wxss compiler may fail on non-ascii bytes.
+   All Chinese text lives in wxml / js instead.
+*/
+
+.container {
+  padding: 20rpx 24rpx 40rpx;
+  background: #f4f7fa;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* ---------- hero ---------- */
+.hero {
+  background: linear-gradient(135deg, #2e86ab 0%, #3aa17e 100%);
+  border-radius: 20rpx;
+  padding: 28rpx 24rpx 22rpx;
+  color: #fff;
+  box-shadow: 0 8rpx 24rpx rgba(46, 134, 171, 0.25);
+}
+.hero-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.hero-item {
+  flex: 1;
+  text-align: center;
+}
+.hero-label {
+  font-size: 24rpx;
+  opacity: 0.85;
+  margin-bottom: 8rpx;
+}
+.hero-value {
+  font-size: 44rpx;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.hero-unit {
+  font-size: 24rpx;
+  font-weight: 400;
+  margin-left: 4rpx;
+}
+.hero-sub {
+  margin-top: 18rpx;
+  padding-top: 14rpx;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.28);
+  font-size: 22rpx;
+  opacity: 0.9;
+  text-align: center;
+}
+
+/* ---------- tabs ---------- */
+.tabs {
+  display: flex;
+  margin: 24rpx 0 4rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 8rpx;
+  box-shadow: 0 4rpx 14rpx rgba(0, 0, 0, 0.05);
+}
+.tab {
+  flex: 1;
+  text-align: center;
+  font-size: 26rpx;
+  color: #5a6b7b;
+  padding: 16rpx 0;
+  border-radius: 12rpx;
+}
+.tab-on {
+  background: #2e86ab;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---------- panel ---------- */
+.panel {
+  background: #fff;
+  border-radius: 18rpx;
+  padding: 24rpx;
+  margin-top: 22rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+}
+.panel-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #233240;
+  margin-bottom: 20rpx;
+  padding-left: 14rpx;
+  border-left: 6rpx solid #2e86ab;
+  line-height: 1.2;
+}
+
+
+/* ---------- date range ---------- */
+.date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.date-box {
+  flex: 1;
+  background: #f4f8fb;
+  border: 2rpx solid #e0e8ef;
+  border-radius: 12rpx;
+  padding: 16rpx 18rpx;
+}
+.date-label {
+  font-size: 22rpx;
+  color: #8a9aa8;
+  margin-bottom: 6rpx;
+}
+.date-value {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #233240;
+}
+.date-sep {
+  width: 60rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #a3b1bd;
+}
+.quick-row {
+  display: flex;
+  margin-top: 18rpx;
+}
+.quick {
+  flex: 1;
+  margin: 0 6rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #5a6b7b;
+  background: #f0f4f8;
+  border-radius: 20rpx;
+  padding: 12rpx 0;
+}
+.quick:first-child { margin-left: 0; }
+.quick:last-child  { margin-right: 0; }
+.quick-on {
+  background: #2e86ab;
+  color: #fff;
+  font-weight: 600;
+}
+.cover-note {
+  margin-top: 16rpx;
+  font-size: 22rpx;
+  color: #8a9aa8;
+  line-height: 1.6;
+}
+
+
+/* ---------- chart ---------- */
+.chart-wrap {
+  width: 100%;
+  height: 400rpx;
+  background: #fbfdfe;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+.chart {
+  width: 100%;
+  height: 400rpx;
+}
+.chart-tip {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #8a9aa8;
+  text-align: center;
+}
+
+/* ---------- stats ---------- */
+.stat-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+.stat-cell {
+  width: 33.33%;
+  box-sizing: border-box;
+  padding: 14rpx 0;
+  text-align: center;
+  border-bottom: 1rpx solid #f0f3f6;
+}
+.stat-label {
+  font-size: 22rpx;
+  color: #8a9aa8;
+  margin-bottom: 6rpx;
+}
+.stat-value {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #233240;
+}
+.stat-hi {
+  color: #2e86ab;
+}
+.stat-unit {
+  font-size: 22rpx;
+  font-weight: 400;
+  margin-left: 2rpx;
+}
+
+/* ---------- distribution ---------- */
+.dist {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+.dist-name {
+  width: 90rpx;
+  font-size: 25rpx;
+  color: #233240;
+}
+.dist-bar {
+  flex: 1;
+  height: 22rpx;
+  background: #eef2f6;
+  border-radius: 11rpx;
+  overflow: hidden;
+  margin: 0 14rpx;
+}
+.dist-fill {
+  height: 100%;
+  border-radius: 11rpx;
+  min-width: 2rpx;
+}
+.dist-pct {
+  width: 90rpx;
+  text-align: right;
+  font-size: 24rpx;
+  color: #5a6b7b;
+}
+.dist-cnt {
+  width: 90rpx;
+  text-align: right;
+  font-size: 22rpx;
+  color: #a3b1bd;
+}
+.dist-note {
+  margin-top: 8rpx;
+  font-size: 23rpx;
+  color: #6b7c8a;
+}
+
+/* ---------- correlation ---------- */
+.corr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f0f3f6;
+}
+.corr-k {
+  font-size: 26rpx;
+  color: #45596a;
+}
+.corr-v {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+.corr-strong {
+  color: #d1495b;
+}
+.corr-mid {
+  color: #ed8b00;
+}
+.corr-weak {
+  color: #8a9aa8;
+}
+.corr-none {
+  color: #3aa17e;
+}
+.corr-note {
+  margin-top: 16rpx;
+  font-size: 23rpx;
+  color: #6b7c8a;
+  line-height: 1.6;
+}
+
+/* ---------- advice ---------- */
+.advice {
+  font-size: 26rpx;
+  line-height: 1.7;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  background: #eef7f4;
+  color: #245c4a;
+}
+.advice-warn {
+  background: #fdf3e7;
+  color: #8a5300;
+}
+.advice-danger {
+  background: #fdeef0;
+  color: #8c2b39;
+}
+.advice-normal {
+  background: #eef7f4;
+  color: #245c4a;
+}
+
+/* ---------- buttons ---------- */
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 26rpx;
+}
+.btn {
+  flex: 1 1 44%;
+  margin: 8rpx;
+  font-size: 28rpx;
+  border-radius: 14rpx;
+  color: #fff;
+  line-height: 2.2;
+}
+.btn-refresh {
+  background: #2e86ab;
+}
+.btn-export {
+  background: #ed8b00;
+}
+.btn-copy {
+  background: #3aa17e;
+}
+.btn-pdf {
+  background: #7b5ea7;
+}
+.btn-four {
+  background: #1f9e8f;
+}
+
+/* offscreen canvas for PDF export (kept off-screen, sized in JS) */
+.pdf-canvas {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 720px;
+  height: 8000px;
+}
+
+/* ---------- footer ---------- */
+.footer {
+  margin-top: 26rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #a3b1bd;
+}
+
+/* ---------- forecast / regression key-value rows ---------- */
+.fc-sub {
+  margin-top: 16rpx;
+  margin-bottom: 6rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #2e86ab;
+}
+.fc-sub:first-child { margin-top: 0; }
+.fc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid #f0f3f6;
+}
+.fc-k {
+  font-size: 25rpx;
+  color: #5a6b7b;
+}
+.fc-v {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #2e86ab;
+}
+.fc-note {
+  margin-top: 14rpx;
+  font-size: 22rpx;
+  color: #8a9aa8;
+  line-height: 1.6;
+}
+
+/* ---------- correlation matrix heatmap (canvas) ---------- */
+.corr-wrap {
+  height: 440rpx;
+}
+.corr-wrap .chart {
+  height: 440rpx;
+}
+
+/* ---------- four-indicator time series (canvas) ---------- */
+.four-wrap {
+  height: 440rpx;
+}
+.four-wrap .chart {
+  height: 440rpx;
+}
+
+/* ---------- integrated report ---------- */
+.report {
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #45596a;
+  padding: 6rpx 0;
+  min-height: 36rpx;
+  white-space: pre-wrap;
+}
+
+.date-time-sep { margin-top: 10rpx; color: #2e86ab; }
+
+/* ---------- four-chart fullscreen landscape zoom ---------- */
+.zoom-hint {
+  font-size: 22rpx;
+  color: #2e86ab;
+  margin-left: 12rpx;
+}
+.four-zoom-mask {
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  z-index: 999;
+  background: #f4f7fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.four-zoom-canvas {
+  width: 100vw;
+  height: 100vh;
+}
+.four-zoom-tip {
+  position: absolute;
+  top: 20rpx;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 22rpx;
+  color: #8a9aa8;
+}
+.four-zoom-close {
+  position: absolute;
+  bottom: 28rpx;
+  right: 28rpx;
+  padding: 14rpx 30rpx;
+  background: #2e86ab;
+  color: #fff;
+  font-size: 24rpx;
+  border-radius: 40rpx;
+  z-index: 2;
+}

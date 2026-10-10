@@ -1,0 +1,90 @@
+/* pages/settings/settings.wxss - Settings page styles */
+/* IMPORTANT: app.wxss sets width:48% on .card for the sensor grid,
+   and display:flex on .card / .btn for layout. Those leak into this
+   page and crush the form to half the screen. We force block + 100%
+   width + vertical button stacking here.
+   Keep this file 100% ASCII - the wxss compiler has previously failed
+   with "unexpected character" on non-ascii bytes. */
+.container {
+  padding: 32rpx 24rpx 48rpx;
+  box-sizing: border-box;
+}
+
+.card {
+  display: block !important;
+  width: 100% !important;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx 24rpx;
+  margin-bottom: 24rpx;
+  box-sizing: border-box;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+.title {
+  display: block !important;
+  font-size: 30rpx; font-weight: 600; color: #233240; margin-bottom: 12rpx;
+  padding-left: 14rpx;
+  border-left: 6rpx solid #2E86AB;
+  line-height: 1.2;
+}
+.desc {
+  display: block !important;
+  font-size: 24rpx; color: #7f8c8d; line-height: 1.6; margin-bottom: 28rpx;
+}
+
+.form-item { display: block !important; margin-bottom: 20rpx; }
+.label { display: block !important; font-size: 26rpx; color: #2c3e50; margin-bottom: 10rpx; font-weight: 500; }
+.input {
+  display: block !important;
+  box-sizing: border-box;
+  width: 100% !important;
+  border: 2rpx solid #e0e6ed;
+  border-radius: 12rpx;
+  padding: 18rpx 22rpx;
+  font-size: 28rpx;
+  background: #fafbfc;
+  color: #233240;
+}
+.input:focus { border-color: #2E86AB; background: #fff; }
+
+.hint {
+  display: block !important;
+  font-size: 24rpx; color: #2E86AB; font-weight: 600;
+  margin-top: 20rpx; margin-bottom: 10rpx;
+}
+.hint-list { display: block !important; font-size: 22rpx; color: #7f8c8d; line-height: 1.8; margin-bottom: 28rpx; }
+.hint-list view { display: block !important; }
+
+.btn {
+  display: block !important;
+  width: 100% !important;
+  flex: none !important;
+  min-width: 0 !important;
+  font-size: 28rpx; font-weight: 500;
+  border-radius: 14rpx;
+  border: none;
+  color: #fff;
+  padding: 22rpx 0;
+  margin-bottom: 16rpx;
+  text-align: center;
+  box-sizing: border-box;
+  height: 72rpx;
+  line-height: 72rpx;
+}
+.btn::after { border: none; }
+.btn-save  { background: linear-gradient(135deg, #66bb6a, #2e7d32); }
+.btn-clear { background: linear-gradient(135deg, #9e9e9e, #616161); }
+
+.about-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14rpx 0;
+  font-size: 26rpx;
+  color: #233240;
+}
+.key { color: #7f8c8d; }
+
+.result-ok    { display: block; color: #27ae60; font-size: 26rpx; text-align: center; padding: 16rpx 0; }
+.result-error { display: block; color: #e74c3c; font-size: 26rpx; text-align: center; padding: 16rpx 0; }

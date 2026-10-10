@@ -1,0 +1,62 @@
+<view class="container">
+
+  <view class="card">
+    <view class="title">巴法云配置</view>
+    <view class="desc">填写你在 bemfa.com 后台「用户中心」私钥和主题。保存后立即生效，重启小程序无需重新填写。</view>
+
+    <view class="form-item">
+      <view class="label">巴法云 私钥</view>
+      <input class="input" value="{{uid}}" bindinput="onUidInput" placeholder="如：0123456789abcdef0123456789abcdef" maxlength="40"/>
+    </view>
+
+    <view class="form-item">
+      <view class="label">设备主题</view>
+      <input class="input" value="{{topic}}" bindinput="onTopicInput" placeholder="如：Test01" maxlength="32"/>
+    </view>
+
+    <view class="hint">填写说明</view>
+    <view class="hint-list">
+      <view>· 私钥在巴法云后台 → 用户中心 复制</view>
+      <view>· 保存到本地后会自动重连，3 秒后首页有数据</view>
+    </view>
+
+    <button class="btn btn-save" bindtap="onSave">💾 保存配置</button>
+    <button class="btn btn-clear" bindtap="onClear">🗑️ 清除配置（恢复默认）</button>
+  </view>
+
+  <view class="card">
+    <view class="title">数据刷新间隔</view>
+    <view class="desc">设置首页从云端拉取传感器数据的轮询间隔。改完保存后立即生效。</view>
+
+    <view class="form-item">
+      <view class="label">刷新间隔（秒）</view>
+      <input class="input" type="digit" value="{{pollSec}}" bindinput="onPollInput" placeholder="如 3" maxlength="6"/>
+    </view>
+
+    <button class="btn btn-save" bindtap="onSavePoll">💾 保存刷新间隔</button>
+  </view>
+
+  <view class="card">
+    <view class="title">云端历史（CloudBase）</view>
+
+    <view class="form-item">
+      <view class="label">云函数地址</view>
+      <input class="input" value="{{cloudBase}}" bindinput="onCloudBaseInput" placeholder="https://xxx.service.tcloudbase.com/getHistory" maxlength="200"/>
+    </view>
+
+    <view class="form-item">
+      <view class="label">访问令牌（未设置则留空）</view>
+      <input class="input" value="{{cloudToken}}" bindinput="onCloudTokenInput" placeholder="云函数 ACCESS_TOKEN" maxlength="64"/>
+    </view>
+
+    <button class="btn btn-save" bindtap="onSaveCloud">💾 保存云端配置</button>
+    <button class="btn btn-clear" bindtap="onTestCloud">🔍 测试连接</button>
+  </view>
+
+  <view class="card">
+    <view class="title">关于</view>
+    <view class="about-row"><text class="key">版本</text><text>v2.0</text></view>
+    <view class="about-row"><text class="key">云平台</text><text>巴法云 bemfa.com</text></view>
+    <view class="about-row"><text class="key">设备主题</text><text>{{topic || '未配置'}}</text></view>
+  </view>
+</view>

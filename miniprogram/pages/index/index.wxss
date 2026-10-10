@@ -1,0 +1,260 @@
+/* pages/index/index.wxss - Main page styles */
+page {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 100%);
+  min-height: 100vh;
+}
+
+.container { padding: 32rpx 24rpx 48rpx; }
+
+/* Hero block - level + air temp/humidity */
+.hero {
+  background: linear-gradient(135deg, #66bb6a, #2e7d32);
+  color: #ffffff; border-radius: 24rpx; padding: 32rpx 28rpx;
+  margin-bottom: 24rpx; box-shadow: 0 6rpx 16rpx rgba(0,0,0,0.10);
+}
+.hero-row {
+  display: flex; justify-content: space-between; align-items: stretch;
+}
+.hero-item { flex: 1; text-align: center; }
+.hero-label { font-size: 22rpx; opacity: 0.85; }
+.hero-value { font-size: 48rpx; font-weight: 700; margin-top: 8rpx; }
+.hero-unit  { font-size: 26rpx; opacity: 0.85; margin-left: 2rpx; }
+.hero-sub {
+  margin-top: 16rpx; font-size: 22rpx; opacity: 0.85;
+  border-top: 1rpx solid rgba(255,255,255,0.2); padding-top: 12rpx;
+}
+
+/* Irrigation advice card - sits between hero and status row */
+.advice-card {
+  border-radius: 20rpx;
+  padding: 22rpx 24rpx 24rpx;
+  margin-bottom: 24rpx;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-left: 8rpx solid #43a047;
+  box-shadow: 0 4rpx 12rpx rgba(67,160,71,0.10);
+  color: #1b5e20;
+}
+.advice-card.advice-warn {
+  background: linear-gradient(135deg, #fff8e1 0%, #ffe0b2 100%);
+  border-left-color: #fb8c00;
+  box-shadow: 0 4rpx 12rpx rgba(251,140,0,0.12);
+  color: #e65100;
+}
+.advice-card.advice-danger {
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  border-left-color: #e53935;
+  box-shadow: 0 4rpx 12rpx rgba(229,57,53,0.14);
+  color: #b71c1c;
+}
+.advice-head { display: flex; align-items: center; }
+.advice-ico {
+  width: 64rpx; height: 64rpx; border-radius: 50%;
+  background: rgba(255,255,255,0.55);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36rpx; margin-right: 18rpx; flex-shrink: 0;
+}
+.advice-mid { flex: 1; min-width: 0; }
+.advice-title {
+  font-size: 26rpx; font-weight: 600;
+  letter-spacing: 1rpx;
+  opacity: 0.85;
+}
+.advice-sub {
+  font-size: 32rpx; font-weight: 700;
+  margin-top: 4rpx; line-height: 1.25;
+}
+.advice-detail {
+  margin-top: 14rpx;
+  font-size: 24rpx; line-height: 1.55;
+  padding-top: 12rpx;
+  border-top: 1rpx dashed rgba(0,0,0,0.10);
+  opacity: 0.92;
+}
+
+/* Status row */
+.status-row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+.status-cell {
+  background: #ffffff; border-radius: 16rpx; padding: 18rpx;
+  display: flex; flex-direction: column; align-items: center;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+.status-icon  { font-size: 36rpx; margin-bottom: 6rpx; }
+.status-label { font-size: 20rpx; color: #888; }
+.status-value { font-size: 26rpx; color: #333; margin-top: 4rpx; font-weight: 600; }
+.status-value.online  { color: #2e7d32; }
+.status-value.offline { color: #c62828; }
+
+/* ---------- Threshold card (single column, compact rows) ---------- */
+.th-card {
+  background: #ffffff; border-radius: 20rpx;
+  padding: 20rpx 24rpx 22rpx; margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+.th-card-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding-bottom: 14rpx; border-bottom: 1rpx solid #f0f3f6; margin-bottom: 6rpx;
+}
+.th-card-title { font-size: 28rpx; font-weight: 600; color: #233240; }
+.th-card-tip   { font-size: 20rpx; color: #999; }
+
+.th-row {
+  display: flex; align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f5f8fa;
+}
+.th-row:last-of-type { border-bottom: none; }
+
+.th-ico {
+  width: 64rpx; height: 64rpx; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32rpx; color: #fff; margin-right: 20rpx;
+  background: linear-gradient(135deg, #a5d6a7, #66bb6a);
+  flex-shrink: 0;
+}
+.th-ico.sh { background: linear-gradient(135deg,#a1887f,#6d4c41); }
+.th-ico.st { background: linear-gradient(135deg,#ef9a9a,#e57373); }
+.th-ico.ah { background: linear-gradient(135deg,#90caf9,#42a5f5); }
+.th-ico.at { background: linear-gradient(135deg,#ffcc80,#ffa726); }
+
+.th-mid  { flex: 1; min-width: 0; }
+.th-name { font-size: 24rpx; color: #666; }
+.th-now  { font-size: 36rpx; font-weight: 600; color: #233240; line-height: 1.2; margin-top: 2rpx; }
+
+.th-edit {
+  display: flex; align-items: center;
+  font-size: 24rpx; color: #888;
+  flex-shrink: 0;
+}
+.th-input {
+  width: 84rpx; height: 48rpx; padding: 0 6rpx;
+  font-size: 26rpx; border: 1rpx solid #cfd8dc; border-radius: 10rpx;
+  text-align: center; background: #fafafa; color: #233240;
+  margin: 0;
+}
+.th-sep { margin: 0 8rpx; color: #b0bec5; font-size: 26rpx; }
+.th-unit { margin-left: 8rpx; color: #888; font-size: 22rpx; }
+
+/* Thin button row (save) — sits inside the card, compact */
+.th-actions {
+  display: flex; gap: 16rpx;
+  margin-top: 18rpx; padding-top: 16rpx;
+  border-top: 1rpx solid #f0f3f6;
+}
+.btn-thin {
+  flex: 1; height: 64rpx; line-height: 64rpx;
+  border-radius: 12rpx; font-size: 26rpx; font-weight: 500;
+  border: none; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-thin::after { border: none; }
+.btn-thin.btn-save { background: linear-gradient(135deg, #66bb6a, #2e7d32); }
+.btn.btn-test { background: linear-gradient(135deg, #42a5f5, #1565c0); }
+
+/* ---------- Big entry: data analysis (full width, prominent) ---------- */
+.entry-big {
+  display: flex; align-items: center;
+  background: linear-gradient(135deg, #26c6da 0%, #00838f 100%);
+  border-radius: 20rpx; padding: 28rpx 24rpx;
+  margin-bottom: 24rpx;
+  color: #fff; box-shadow: 0 8rpx 20rpx rgba(0, 131, 143, 0.22);
+}
+.entry-ico {
+  width: 96rpx; height: 96rpx; border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56rpx; margin-right: 24rpx;
+  flex-shrink: 0;
+}
+.entry-text { flex: 1; min-width: 0; }
+.entry-title { font-size: 34rpx; font-weight: 700; line-height: 1.2; }
+.entry-sub   { font-size: 22rpx; opacity: 0.88; margin-top: 6rpx; }
+.entry-arrow {
+  font-size: 56rpx; opacity: 0.7; margin-left: 12rpx;
+  font-weight: 300;
+}
+
+/* Control section */
+.control {
+  background: #ffffff; border-radius: 20rpx; padding: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04); margin-bottom: 16rpx;
+}
+.control-title {
+  font-size: 26rpx; font-weight: 600; color: #2e7d32; margin-bottom: 16rpx;
+}
+.btn-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12rpx;
+}
+.btn {
+  border-radius: 14rpx; padding: 18rpx 8rpx; font-size: 26rpx;
+  display: flex; align-items: center; justify-content: center;
+  border: none; color: #ffffff; font-weight: 500;
+}
+.btn::after { border: none; }
+.btn.btn-on   { background: linear-gradient(135deg,#66bb6a,#2e7d32); }
+.btn.btn-off  { background: linear-gradient(135deg,#9e9e9e,#616161); }
+.btn.btn-set  { background: linear-gradient(135deg,#26a69a,#00695c); }
+
+/* ---------- 灌溉状态（远程控制区） ---------- */
+/* 标题行改为「标题 + 状态徽标」左右分布，原标题的独占下边距在此清零 */
+.control-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+.control-title { font-size: 26rpx; font-weight: 600; color: #2e7d32; margin-bottom: 0; }
+
+/* 状态徽标 */
+.irr-badge {
+  display: flex; align-items: center;
+  padding: 8rpx 18rpx; border-radius: 999rpx; font-size: 22rpx;
+}
+.irr-badge.irr-off { background: #f1f3f5; color: #90a4ae; }
+.irr-badge.irr-on  { background: rgba(46,125,50,0.10); color: #2e7d32; font-weight: 600; }
+.irr-dot {
+  width: 14rpx; height: 14rpx; border-radius: 50%;
+  margin-right: 10rpx; flex-shrink: 0; background: #b0bec5;
+}
+/* 灌溉中：圆点呼吸闪烁，直观区分"正在出水"与"待机" */
+.irr-badge.irr-on .irr-dot {
+  background: #2e7d32;
+  animation: irr-blink 1.2s ease-in-out infinite;
+}
+@keyframes irr-blink {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%      { opacity: .35; transform: scale(0.72); }
+}
+.irr-badge-text { line-height: 1; }
+.irr-badge-time {
+  margin-left: 12rpx; padding-left: 12rpx;
+  border-left: 1rpx solid rgba(46,125,50,0.28);
+}
+
+/* 灌溉中横幅：蓝色水波呼吸，与绿色"决策建议卡"在视觉上区分 */
+.irr-banner {
+  display: flex; align-items: center;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-left: 8rpx solid #1e88e5;
+  border-radius: 16rpx; padding: 18rpx 20rpx; margin-bottom: 18rpx;
+  color: #0d47a1;
+  animation: irr-pulse 1.8s ease-in-out infinite;
+}
+@keyframes irr-pulse {
+  0%, 100% { box-shadow: 0 0 0 0    rgba(30,136,229,0.20); }
+  50%      { box-shadow: 0 0 0 12rpx rgba(30,136,229,0);    }
+}
+.irr-banner-ico { font-size: 42rpx; margin-right: 16rpx; flex-shrink: 0; }
+.irr-banner-mid { flex: 1; min-width: 0; }
+.irr-banner-title { font-size: 28rpx; font-weight: 700; line-height: 1.25; }
+.irr-banner-sub   { font-size: 20rpx; opacity: 0.85; margin-top: 4rpx; line-height: 1.4; }
+
+/* 灌溉中按钮配色：启动键转蓝（表示"已执行"），关闭键转红（表示"可执行的关键动作"） */
+.btn.btn-irr-live  { background: linear-gradient(135deg, #42a5f5, #1565c0); }
+.btn.btn-stop-live { background: linear-gradient(135deg, #ef5350, #c62828); }
+
+/* Footer */
+.footer {
+  text-align: center; margin-top: 40rpx;
+  font-size: 22rpx; color: #999;
+}

@@ -1,0 +1,158 @@
+<view class="container">
+
+  <!-- 顶部绿色信息卡：墒情等级 + 土壤温湿度 + 主题名（与"4 传感器卡片"中的空气温湿度分开，避免信息冗余） -->
+  <view class="hero">
+    <view class="hero-row">
+      <view class="hero-item">
+        <view class="hero-label">土壤墒情等级</view>
+        <view class="hero-value" style="font-size:40rpx;">{{level}}</view>
+      </view>
+      <view class="hero-item">
+        <view class="hero-label">土壤湿度</view>
+        <view class="hero-value">{{sh}}<text class="hero-unit">%</text></view>
+      </view>
+      <view class="hero-item">
+        <view class="hero-label">土壤温度</view>
+        <view class="hero-value">{{st}}<text class="hero-unit">℃</text></view>
+      </view>
+    </view>
+    <view class="hero-sub">主题：{{topic}} · 最后更新：{{lastUpdate}}<text wx:if="{{freshText}}" style="margin-left:8rpx;font-weight:600;color:{{freshColor}}">{{freshText}}</text></view>
+  </view>
+
+  <!-- 灌溉决策建议：基于当前土壤湿度与阈值实时生成 -->
+  <view class="advice-card {{adviceLevel}}">
+    <view class="advice-head">
+      <view class="advice-ico">{{adviceIcon}}</view>
+      <view class="advice-mid">
+        <view class="advice-title">实时灌溉决策建议</view>
+        <view class="advice-sub">{{adviceSummary}}</view>
+      </view>
+    </view>
+    <view class="advice-detail">{{adviceText}}</view>
+  </view>
+
+  <!-- 设备状态条 -->
+  <view class="status-row">
+    <view class="status-cell">
+      <view class="status-icon">📡</view>
+      <view class="status-label">设备状态</view>
+      <view class="status-value {{online ? 'online' : 'offline'}}">{{online ? '在线' : '离线'}}</view>
+    </view>
+    <view class="status-cell">
+      <view class="status-icon">📶</view>
+      <view class="status-label">WiFi 信号</view>
+      <view class="status-value">{{rssiLabel}}</view>
+    </view>
+    <view class="status-cell">
+      <view class="status-icon">🔄</view>
+      <view class="status-label">刷新间隔</view>
+      <view class="status-value">{{pollLabel}}</view>
+    </view>
+  </view>
+
+  <!-- 阈值列表（单列紧凑：每行一个传感器显示+阈值输入，不再挤在 2x2 卡内） -->
+  <view class="th-card">
+    <view class="th-card-head">
+      <text class="th-card-title">实时墒情与阈值设置</text>
+      <text class="th-card-tip">改完记得点保存</text>
+    </view>
+    <view class="th-row">
+      <view class="th-ico sh">💧</view>
+      <view class="th-mid">
+        <view class="th-name">土壤湿度</view>
+        <view class="th-now">{{sh}}<text class="th-unit">%</text></view>
+      </view>
+      <view class="th-edit">
+        <input class="th-input" type="digit" value="{{thr.shLow}}" bindinput="onThInput" data-key="shLow" />
+        <text class="th-sep">~</text>
+        <input class="th-input" type="digit" value="{{thr.shOpt}}" bindinput="onThInput" data-key="shOpt" />
+        <text class="th-unit">%</text>
+      </view>
+    </view>
+    <view class="th-row">
+      <view class="th-ico st">🌡️</view>
+      <view class="th-mid">
+        <view class="th-name">土壤温度</view>
+        <view class="th-now">{{st}}<text class="th-unit">℃</text></view>
+      </view>
+      <view class="th-edit">
+        <input class="th-input" type="digit" value="{{thr.stLow}}" bindinput="onThInput" data-key="stLow" />
+        <text class="th-sep">~</text>
+        <input class="th-input" type="digit" value="{{thr.stHi}}"  bindinput="onThInput" data-key="stHi"  />
+        <text class="th-unit">℃</text>
+      </view>
+    </view>
+    <view class="th-row">
+      <view class="th-ico ah">💨</view>
+      <view class="th-mid">
+        <view class="th-name">空气湿度</view>
+        <view class="th-now">{{ah}}<text class="th-unit">%</text></view>
+      </view>
+      <view class="th-edit">
+        <input class="th-input" type="digit" value="{{thr.ahLow}}" bindinput="onThInput" data-key="ahLow" />
+        <text class="th-sep">~</text>
+        <input class="th-input" type="digit" value="{{thr.ahHi}}"  bindinput="onThInput" data-key="ahHi"  />
+        <text class="th-unit">%</text>
+      </view>
+    </view>
+    <view class="th-row">
+      <view class="th-ico at">☀️</view>
+      <view class="th-mid">
+        <view class="th-name">空气温度</view>
+        <view class="th-now">{{at}}<text class="th-unit">℃</text></view>
+      </view>
+      <view class="th-edit">
+        <input class="th-input" type="digit" value="{{thr.atLow}}" bindinput="onThInput" data-key="atLow" />
+        <text class="th-sep">~</text>
+        <input class="th-input" type="digit" value="{{thr.atHi}}"  bindinput="onThInput" data-key="atHi"  />
+        <text class="th-unit">℃</text>
+      </view>
+    </view>
+
+    <!-- 保存阈值按钮 -->
+    <view class="th-actions">
+      <button class="btn-thin btn-save" bindtap="onSaveThresholds">💾 保存阈值</button>
+    </view>
+  </view>
+
+  <!-- 数据分析主入口：全宽大按钮（蓝色高亮），单独一栏最显眼 -->
+  <view class="entry-big" bindtap="onOpenAnalysis">
+    <view class="entry-ico">📊</view>
+    <view class="entry-text">
+      <view class="entry-title">数据分析</view>
+      <view class="entry-sub">历史趋势 / 统计 / 相关性 / 导出 Excel</view>
+    </view>
+    <view class="entry-arrow">›</view>
+  </view>
+
+  <!-- 远程控制区（普通按钮） -->
+  <view class="control">
+    <view class="control-head">
+      <view class="control-title">远程控制</view>
+      <!-- 灌溉状态徽标：灌溉中绿底呼吸灯 + 已持续时长；未灌溉灰底待机 -->
+      <view class="irr-badge {{irrigating ? 'irr-on' : 'irr-off'}}">
+        <view class="irr-dot"></view>
+        <text class="irr-badge-text">{{irrigating ? '正在灌溉中' : '未灌溉'}}</text>
+        <text class="irr-badge-time" wx:if="{{irrigating}}">{{irrElapsed}}</text>
+      </view>
+    </view>
+
+    <!-- 灌溉中横幅：仅灌溉时渲染，带水波呼吸动效与实时土壤湿度 -->
+    <view class="irr-banner" wx:if="{{irrigating}}">
+      <text class="irr-banner-ico">💧</text>
+      <view class="irr-banner-mid">
+        <view class="irr-banner-title">正在灌溉中…</view>
+        <view class="irr-banner-sub">已持续 {{irrElapsed}} · 土壤湿度 {{sh}}% · 点「关闭灌溉」随时停止</view>
+      </view>
+    </view>
+
+    <view class="btn-row">
+      <button class="btn btn-on {{irrigating ? 'btn-irr-live' : ''}}" bindtap="onIrrigateOn">{{irrigating ? '💧 正在灌溉' : '💧 启动灌溉'}}</button>
+      <button class="btn btn-off {{irrigating ? 'btn-stop-live' : ''}}" bindtap="onIrrigateOff">⛔ 关闭灌溉</button>
+      <button class="btn btn-test" bindtap="onTestAlarm">🔔 测试报警</button>
+      <button class="btn btn-set" bindtap="onOpenSettings">⚙️ 设置</button>
+    </view>
+  </view>
+
+  <view class="footer"></view>
+</view>

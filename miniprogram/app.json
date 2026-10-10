@@ -1,0 +1,14 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/analysis/analysis",
+    "pages/trendZoom/trendZoom",
+    "pages/settings/settings"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#2E86AB",
+    "navigationBarTitleText": "农田土壤墒情云端采集与数据分析系统",
+    "navigationBarTextStyle": "white"
+  }
+}
