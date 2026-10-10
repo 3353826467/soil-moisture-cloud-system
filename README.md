@@ -63,7 +63,7 @@
 ## 三、目录结构
 
 ```
-esp32-soil-moisture-monitor/
+soil-moisture-cloud-system/
 ├── firmware/                          ESP32 端固件（Arduino IDE 工程）
 │   ├── esp32_tomato_monitor_v3_reorganized.ino
 │   ├── config.example.h               ← 配置模板（复制为 config.h 填真实值）
