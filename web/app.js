@@ -284,7 +284,11 @@ async function bemfaPost(msg) {
 /* ============================================================
  * 路由
  * ============================================================ */
-const ROUTES = { home: 'view-home', analysis: 'view-analysis', threshold: 'view-threshold', settings: 'view-settings' };
+const ROUTES = {
+  home: 'view-home', analysis: 'view-analysis',
+  ai: 'view-ai',
+  threshold: 'view-threshold', settings: 'view-settings'
+};
 let homeTimer = null;
 
 function showRoute(route) {
@@ -311,6 +315,9 @@ function showRoute(route) {
   if (route === 'threshold') {
     renderHomeThrInputs();
   }
+  if (route === 'ai') {
+    if (window.AIAgent && window.AIAgent.onShow) window.AIAgent.onShow();
+  }
   if (route === 'settings') {
     loadSettingsIntoForm();
   }
@@ -331,7 +338,45 @@ window.addEventListener('DOMContentLoaded', () => {
   bindZoom();
   restoreIrr();       // 从缓存恢复灌溉状态与起始时刻（刷新页面不丢"正在灌溉中"）
   startIrrTimer();    // 1s 刷新"已持续 mm:ss"
+  bindAiAgent();
 });
+
+/* ============================================================
+ * AI 分析助手接入
+ * ============================================================ */
+/* 供 ai-agent.js 构造上下文：把首页最新读数 + 分析页当前时段统计一起打包。
+ * 注意：只传数值摘要与抽稀后的采样，不传任何密钥或隐私字段。 */
+function getAppContext() {
+  return {
+    topic: STATE.topic,
+    latest: lastSensor,
+    lastUpdate: lastSensorAt || ((document.getElementById('h-last') || {}).textContent || ''),
+    rssi: lastRssi,
+    thr: homeThr,
+    an: {
+      startDate: anState.startDate, endDate: anState.endDate,
+      startTime: anState.startTime, endTime: anState.endTime,
+      fetchMode: anState.fetchMode,
+      spanText: anState.spanText, intervalText: anState.intervalText,
+      forecast: anState.forecast, corr: anState.corr,
+      topLevel: anState.topLevel, topPct: anState.topPct
+    },
+    records: (typeof records !== 'undefined' && records.length) ? records : allRecords
+  };
+}
+
+function bindAiAgent() {
+  if (!window.AIAgent) return;
+  window.AIAgent.init({
+    getContext: getAppContext,
+    jumpSettings: function () { location.hash = '#/settings'; }
+  });
+  const fab = $('ai-fab');
+  if (fab) fab.addEventListener('click', () => { location.hash = '#/ai'; });
+  // 分析页底部也给一个直达入口，边看数据边问 AI
+  const entry = $('btn-ai-from-analysis');
+  if (entry) entry.addEventListener('click', () => { location.hash = '#/ai'; });
+}
 
 /* ============================================================
  * 首页
@@ -480,6 +525,8 @@ function fmtSensor(v) {
 }
 
 let lastSensor = null;  // 最近一次有效读数（原始数字），"保存阈值"后用它立即重算建议
+let lastRssi = null;    // 最近一次有效 WiFi 信号强度（dBm），AI 上下文会带上
+let lastSensorAt = '';  // 最近一次有效读数的上报时刻（HH:MM:SS）
 
 function computeHomeAdvice(sh, st, at, ah) {
   // homeThr 可能被旧缓存/设备回传污染成字符串或 NaN，使用前统一归一化
@@ -626,6 +673,9 @@ function fetchLatest() {
         // 缓存原始读数（"保存阈值"后立即用它重算建议，不用等下一帧）
         const stV = Number(obj.st), atV = Number(obj.at), ahV = Number(obj.ah);
         lastSensor = { sh: shNum, st: stV, at: atV, ah: ahV };
+        // 供 AI 上下文使用：记录最近一次有效读数的时间与信号强度
+        lastRssi = (obj.rssi === undefined || obj.rssi === null) ? null : Number(obj.rssi);
+        lastSensorAt = lastUpdate;
         paintHomeAdvice(computeHomeAdvice(shNum, stV, atV, ahV));
         // 设备回传阈值 → 覆盖本地显示（设备是唯一真源）
         // 只覆盖有效字段，避免旧固件缺 shOpt 时把本地阈值冲成 NaN
@@ -930,6 +980,83 @@ function loadSettingsIntoForm() {
   var cb = $('set-cloud-base'), ct = $('set-cloud-token');
   if (cb) cb.value = getCloudBase();
   if (ct) ct.value = getCloudToken();
+  loadAiSettingsIntoForm();
+}
+
+/* ---------------- 设置页 · AI 助手（后端接入） ---------------- */
+function loadAiSettingsIntoForm() {
+  if (!window.AIAgent) return;
+  const A = window.AIAgent;
+  const c = A.getCfg();
+  const setVal = (id, v) => { const el = $(id); if (el) el.value = v; };
+  setVal('set-ai-base', c.base === A.DEFAULTS.base ? '' : c.base);
+  setVal('set-ai-temp', c.temp);
+  paintAiTest(null);
+  paintAiServerState();
+  // 后端状态要等一次网络往返，拿到后刷新状态行
+  A.refreshServer(true).then(paintAiServerState);
+}
+/* 后端状态行：模型名 + 是否已配置密钥 */
+function paintAiServerState() {
+  const el = $('set-ai-server-state');
+  if (!el || !window.AIAgent) return;
+  const s = window.AIAgent.serverCfg();
+  if (!s) {
+    el.textContent = window.AIAgent.serverError() || '未连接';
+    el.style.color = '#a8323f';
+    return;
+  }
+  el.textContent = '已连接 · 模型 ' + (s.model || '--') + ' · 上游 ' + (s.provider || '--') +
+    ' · 密钥 ' + (s.configured ? (s.keyHint || '已配置') : '未配置 ⚠️');
+  el.style.color = s.configured ? '#1f7a5c' : '#a06800';
+}
+/* 检测结果展示：null=清空；{ok,msg,latency,model} */
+function paintAiTest(r) {
+  const box = $('ai-test-result');
+  if (!box) return;
+  if (!r) { box.className = 'ai-test-result'; box.textContent = ''; return; }
+  box.className = 'ai-test-result ' + (r.ok ? 'ai-test-ok' : 'ai-test-err');
+  box.innerHTML = r.ok
+    ? '✅ 接口可用 · 模型 <b>' + (r.model || '--') + '</b> · 往返耗时 <b>' + r.latency + ' ms</b>' +
+      (r.provider ? '<div class="ai-test-sub">后端 → 上游：' + String(r.provider).replace(/[<>&]/g, '') + '</div>' : '') +
+      (r.reply ? '<div class="ai-test-sub">模型回信：' + String(r.reply).replace(/[<>&]/g, '') + '</div>' : '')
+    : '❌ ' + String(r.msg || '检测失败').replace(/[<>&]/g, '');
+}
+function bindAiSettings() {
+  if (!window.AIAgent) return;
+  const A = window.AIAgent;
+  const read = () => ({
+    base: ($('set-ai-base') || {}).value || '',
+    temp: Number(($('set-ai-temp') || {}).value)
+  });
+  if ($('btn-save-ai')) $('btn-save-ai').addEventListener('click', () => {
+    const c = read();
+    const b = c.base.trim();
+    // 留空=同源；填了必须带协议，且不能是相对路径
+    if (b && !/^(https?:\/\/|\/)/i.test(b)) { toast('后端地址需以 http(s):// 或 / 开头'); return; }
+    if (!isFinite(c.temp)) c.temp = A.DEFAULTS.temp;
+    c.temp = Math.min(1, Math.max(0, c.temp));
+    A.saveCfg({ base: b || A.DEFAULTS.base, temp: c.temp });
+    toast('已保存，正在重新连接后端…');
+    paintAiTest(null);
+    A.refreshServer(true).then(() => {
+      paintAiServerState();
+      if (A.cfgReady()) toast('AI 后端已就绪：' + (A.serverCfg() || {}).model);
+    });
+  });
+  if ($('btn-clear-ai')) $('btn-clear-ai').addEventListener('click', () => {
+    try { localStorage.removeItem(A.KEYS.base); localStorage.removeItem(A.KEYS.temp); } catch (e) {}
+    loadAiSettingsIntoForm();
+    toast('已恢复默认（同源后端）');
+  });
+  if ($('btn-test-ai')) $('btn-test-ai').addEventListener('click', () => {
+    paintAiTest({ ok: false, msg: '正在检测，请稍候…' });
+    A.testConnection().then(r => {
+      paintAiTest(r);
+      paintAiServerState();
+      if (r.ok) toast('AI 接口可用（' + r.latency + ' ms）');
+    });
+  });
 }
 function bindSettings() {
   $('btn-save-cfg').addEventListener('click', () => {
@@ -977,6 +1104,7 @@ function bindSettings() {
       toast('连接成功：返回 ' + r.count + ' 条（' + (Date.now() - t0) + ' ms）');
     });
   });
+  bindAiSettings();
 }
 
 /* ============================================================

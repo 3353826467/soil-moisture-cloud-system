@@ -404,5 +404,32 @@ Page({
   onIrrigateOff()  { this._postSub('irrigate_off', '灌溉关闭'); this._setIrr(false); },
   onTestAlarm()    { this._postSub('test_alarm',       '测试报警 3 秒'); },
   onOpenAnalysis() { wx.navigateTo({ url: '/pages/analysis/analysis' }); },
-  onOpenSettings() { wx.navigateTo({ url: '/pages/settings/settings' }); }
+  onOpenSettings() { wx.navigateTo({ url: '/pages/settings/settings' }); },
+
+  // 「🤖 问 AI」：把当前实时读数 + 阈值打包交给轻量问答页统一发问
+  onAskAi() {
+    const latest = this._latest || null;
+    if (!latest || !isFinite(Number(latest.sh))) {
+      wx.showToast({ title: '还没有实时数据', icon: 'none' });
+      return;
+    }
+    let ok = true;
+    try {
+      wx.setStorageSync('ai_ask_ctx', {
+        ctx: {
+          topic: this.data.topic || '',
+          latest: latest,
+          lastUpdate: this.data.lastUpdate || '',
+          rssi: this.data.rssi,
+          thr: this.data.thr,
+          an: {},
+          records: []
+        },
+        question: '根据当前的墒情数据，给我一份简明分析和灌溉建议。',
+        summary: '最新读数 + 当前阈值'
+      });
+    } catch (e) { ok = false; }
+    if (!ok) { wx.showToast({ title: '上下文写入失败', icon: 'none' }); return; }
+    wx.navigateTo({ url: '/pages/aiAsk/aiAsk' });
+  }
 });

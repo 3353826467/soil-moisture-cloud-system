@@ -137,7 +137,7 @@ page {
 .th-sep { margin: 0 8rpx; color: #b0bec5; font-size: 26rpx; }
 .th-unit { margin-left: 8rpx; color: #888; font-size: 22rpx; }
 
-/* Thin button row (save) — sits inside the card, compact */
+/* Thin button row (save) - sits inside the card, compact */
 .th-actions {
   display: flex; gap: 16rpx;
   margin-top: 18rpx; padding-top: 16rpx;
@@ -176,6 +176,42 @@ page {
   font-weight: 300;
 }
 
+/* ---------- AI quick ask entry (compact bar under data analysis) ---------- */
+.ai-ask {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background: linear-gradient(135deg, #7e57c2 0%, #4527a0 100%);
+  border-radius: 20rpx;
+  padding: 22rpx 28rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 6rpx 16rpx rgba(69, 39, 160, 0.20);
+}
+.ai-ask-ico {
+  font-size: 44rpx;
+  margin-right: 18rpx;
+}
+.ai-ask-mid {
+  flex: 1;
+  min-width: 0;
+}
+.ai-ask-title {
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+.ai-ask-sub {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 22rpx;
+  margin-top: 4rpx;
+}
+.ai-ask-arrow {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 48rpx;
+  font-weight: 300;
+  margin-left: 8rpx;
+}
+
 /* Control section */
 .control {
   background: #ffffff; border-radius: 20rpx; padding: 24rpx;
@@ -197,15 +233,16 @@ page {
 .btn.btn-off  { background: linear-gradient(135deg,#9e9e9e,#616161); }
 .btn.btn-set  { background: linear-gradient(135deg,#26a69a,#00695c); }
 
-/* ---------- 灌溉状态（远程控制区） ---------- */
-/* 标题行改为「标题 + 状态徽标」左右分布，原标题的独占下边距在此清零 */
+/* ---------- Irrigation status (remote control area) ---------- */
+/* Title row is now "title + status badge" laid out left/right,
+   so reset the exclusive bottom margin the title used to have */
 .control-head {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 16rpx;
 }
 .control-title { font-size: 26rpx; font-weight: 600; color: #2e7d32; margin-bottom: 0; }
 
-/* 状态徽标 */
+/* Status badge */
 .irr-badge {
   display: flex; align-items: center;
   padding: 8rpx 18rpx; border-radius: 999rpx; font-size: 22rpx;
@@ -216,7 +253,7 @@ page {
   width: 14rpx; height: 14rpx; border-radius: 50%;
   margin-right: 10rpx; flex-shrink: 0; background: #b0bec5;
 }
-/* 灌溉中：圆点呼吸闪烁，直观区分"正在出水"与"待机" */
+/* Irrigating: dot breathes/blinks to tell "water flowing" from "standby" */
 .irr-badge.irr-on .irr-dot {
   background: #2e7d32;
   animation: irr-blink 1.2s ease-in-out infinite;
@@ -231,7 +268,7 @@ page {
   border-left: 1rpx solid rgba(46,125,50,0.28);
 }
 
-/* 灌溉中横幅：蓝色水波呼吸，与绿色"决策建议卡"在视觉上区分 */
+/* Irrigating banner: blue wave pulse, visually distinct from the green suggestion card */
 .irr-banner {
   display: flex; align-items: center;
   background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
@@ -249,7 +286,8 @@ page {
 .irr-banner-title { font-size: 28rpx; font-weight: 700; line-height: 1.25; }
 .irr-banner-sub   { font-size: 20rpx; opacity: 0.85; margin-top: 4rpx; line-height: 1.4; }
 
-/* 灌溉中按钮配色：启动键转蓝（表示"已执行"），关闭键转红（表示"可执行的关键动作"） */
+/* Irrigating button colors: start turns blue ("already running"),
+   stop turns red ("the available key action") */
 .btn.btn-irr-live  { background: linear-gradient(135deg, #42a5f5, #1565c0); }
 .btn.btn-stop-live { background: linear-gradient(135deg, #ef5350, #c62828); }
 

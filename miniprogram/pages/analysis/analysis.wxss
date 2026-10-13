@@ -330,6 +330,10 @@
 .btn-four {
   background: #1f9e8f;
 }
+.btn-ai {
+  background: linear-gradient(135deg, #7e57c2, #4527a0);
+  color: #fff;
+}
 
 /* offscreen canvas for PDF export (kept off-screen, sized in JS) */
 .pdf-canvas {

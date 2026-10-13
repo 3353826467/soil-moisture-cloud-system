@@ -59,6 +59,12 @@
         <span class="tech-side-main">数据分析</span>
       </span>
     </a>
+    <a class="tech-side-link" data-route="ai" href="#/ai">
+      <span class="tech-side-ico">🤖</span>
+      <span class="tech-side-text">
+        <span class="tech-side-main">AI 分析助手</span>
+      </span>
+    </a>
     <a class="tech-side-link" data-route="threshold" href="#/threshold">
       <span class="tech-side-ico">🔧</span>
       <span class="tech-side-text">
@@ -108,6 +114,7 @@
   <nav class="topnav tech-hidden-proxy" aria-hidden="true">
     <a data-route="home" href="#/">首页</a>
     <a data-route="analysis" href="#/analysis">分析</a>
+    <a data-route="ai" href="#/ai">AI</a>
     <a data-route="threshold" href="#/threshold">阈值</a>
     <a data-route="settings" href="#/settings">设置</a>
   </nav>
@@ -404,10 +411,62 @@
         <button class="tech-btn tech-btn-green" id="btn-an-copy">📋 复制摘要</button>
         <button class="tech-btn tech-btn-purple" id="btn-an-pdf">📄 导出 PDF</button>
         <button class="tech-btn tech-btn-cyan" id="btn-an-chart">💾 保存时序图</button>
+        <button class="tech-btn tech-btn-purple" id="btn-ai-from-analysis">🤖 交给 AI 解读</button>
       </div>
 
       <div class="tech-footer" id="an-footer">© 2026 · 农田土壤墒情云端采集与数据分析系统</div>
       <canvas id="pdfCanvas" class="pdf-canvas"></canvas>
+    </section>
+
+    <!-- =============== AI 分析助手 =============== -->
+    <section id="view-ai" class="view hidden">
+      <div class="tech-section-head">
+        <div class="tech-section-title"><span class="tech-section-bar"></span>AI 分析助手</div>
+        <div class="tech-section-status" id="ai-status-text">🤖 未配置接口</div>
+      </div>
+
+      <!-- 快捷问题（一句话唤起常用分析） -->
+      <div class="tech-card ai-quick-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title">⚡ 快捷分析</span>
+          <span class="tech-card-tip">点击直接提问，也可在下方自由输入</span>
+        </div>
+        <div class="ai-chip-row" id="ai-quick"></div>
+      </div>
+
+      <!-- 对话区 -->
+      <div class="tech-card ai-chat-card">
+        <div class="tech-card-head">
+          <span class="tech-card-title">💬 咨询与答疑</span>
+          <div class="ai-head-actions">
+            <button class="tech-btn tech-btn-sm tech-btn-grey" id="ai-copy-btn">📋 复制回答</button>
+            <button class="tech-btn tech-btn-sm tech-btn-grey" id="ai-clear-btn">🗑️ 清空对话</button>
+          </div>
+        </div>
+
+        <label class="ai-ctx-bar">
+          <input type="checkbox" id="ai-ctx-toggle" checked />
+          <span>提问时自动附带当前数据上下文</span>
+          <span class="ai-ctx-sum" id="ai-ctx-summary">—</span>
+        </label>
+
+        <div class="ai-chat-list" id="ai-chat-list"></div>
+
+        <div class="ai-input-row">
+          <textarea class="tech-input ai-input" id="ai-input" rows="2"
+            placeholder="输入你的问题，例如：根据今天的数据，现在需要灌溉吗？（Enter 发送，Shift+Enter 换行）"></textarea>
+          <div class="ai-input-btns">
+            <button class="tech-btn tech-btn-blue" id="ai-send">发送</button>
+            <button class="tech-btn tech-btn-red hidden" id="ai-stop">停止</button>
+          </div>
+        </div>
+
+        <div class="ai-tip">
+          AI 回答由第三方大模型生成，仅供参考；灌溉、施肥、用药等关键决策请结合田间实际情况复核。
+        </div>
+      </div>
+
+      <div class="tech-footer">© 2026 · 农田土壤墒情云端采集与数据分析系统 · AI 分析助手</div>
     </section>
 
     <!-- =============== 设置 =============== -->
@@ -458,6 +517,35 @@
         </div>
         <button class="tech-btn tech-btn-warn" id="btn-save-cloud">💾 保存云端配置</button>
         <button class="tech-btn tech-btn-grey" id="btn-test-cloud" style="margin-top:8px;">🔍 测试连接</button>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-head"><span class="tech-card-title">🤖 AI 助手（后端接入）</span></div>
+        <div class="tech-card-desc">
+          AI 由本项目自带的后端服务统一调用：<b>密钥只写在服务端，浏览器拿不到</b>，也不需要在这里填任何 API Key。
+          后端同时托管网页、转发大模型请求，天然没有跨域问题。
+        </div>
+        <div class="form-item">
+          <div class="label">后端地址（默认同源，一般不用改）</div>
+          <input class="tech-input" id="set-ai-base" placeholder="留空 = 同源 api/ai；分离部署填 http://192.168.1.9:8080/api/ai" />
+        </div>
+        <div class="form-item">
+          <div class="label">温度（0~1，越大越发散，默认 0.3）</div>
+          <input class="tech-input" id="set-ai-temp" type="number" min="0" max="1" step="0.1" placeholder="0.3" />
+        </div>
+        <div class="tech-btn-row">
+          <button class="tech-btn tech-btn-warn" id="btn-save-ai">💾 保存</button>
+          <button class="tech-btn tech-btn-cyan" id="btn-test-ai">🔍 检测 AI 接口</button>
+          <button class="tech-btn tech-btn-grey" id="btn-clear-ai">🗑️ 恢复默认</button>
+        </div>
+        <div class="ai-test-result" id="ai-test-result"></div>
+        <div class="hint">后端怎么配</div>
+        <div class="hint-list">
+          <div>· 启动后端：<span class="mono">node server/server.js</span>，然后访问 <span class="mono">http://localhost:8080</span></div>
+          <div>· 密钥 / 模型 / 上游地址写在 <span class="mono">server/config.js</span>，改完重启后端生效</div>
+          <div>· 也可用环境变量覆盖：<span class="mono">PORT</span> / <span class="mono">AI_API_KEY</span> / <span class="mono">AI_MODEL</span> / <span class="mono">AI_API_BASE</span></div>
+          <div>· 当前后端状态：<span class="mono" id="set-ai-server-state">检测中…</span></div>
+        </div>
       </div>
 
       <div class="tech-card">
@@ -567,6 +655,9 @@
   </div>
 </div>
 
+<!-- 悬浮 AI 入口：任意页面一键唤起助手 -->
+<button class="ai-fab" id="ai-fab" type="button" title="AI 分析助手">🤖</button>
+
 <div id="toast" class="tech-toast hidden"></div>
 
 <script src="config.js"></script>
@@ -574,7 +665,8 @@
 <script src="config.local.js" onerror="void 0"></script>
 <script src="exceljs.min.js?v=20260911b"></script>
 <script src="chart.min.js?v=20260913e"></script>
-<script src="app.js?v=20260913e"></script>
+<script src="ai-agent.js?v=20261012a"></script>
+<script src="app.js?v=20261012a"></script>
 <script>
 /* === 顶栏时钟 === */
 (function () {

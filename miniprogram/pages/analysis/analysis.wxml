@@ -205,6 +205,7 @@
     <button class="btn btn-copy"    bindtap="onCopy">复制摘要</button>
     <button class="btn btn-pdf"     bindtap="onExportPdf">导出 PDF</button>
     <button class="btn btn-four"    bindtap="onSaveFourChart">保存时序图</button>
+    <button class="btn btn-ai"      bindtap="onAskAi">🤖 问 AI</button>
   </view>
 
   <view class="footer" wx:if="{{loading}}">正在拉取历史数据…</view>

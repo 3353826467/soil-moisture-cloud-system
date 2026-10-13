@@ -412,6 +412,47 @@ Page({
     this.fetchHistory();
   },
 
+  // 「🤖 问 AI」：把本页当前时段（统计 + 抽稀采样）打包交给轻量问答页，
+  // 抽稀到 60 条：既能让 AI 看清趋势，又不会把请求体撑爆。
+  onAskAi() {
+    const recs = this.records || [];
+    if (!recs.length) {
+      wx.showToast({ title: '当前时段没有数据', icon: 'none' });
+      return;
+    }
+    const step = Math.max(1, Math.ceil(recs.length / 60));
+    const slim = [];
+    for (let i = 0; i < recs.length; i += step) slim.push(recs[i]);
+    if (slim.length && slim[slim.length - 1] !== recs[recs.length - 1]) slim.push(recs[recs.length - 1]);
+
+    const last = recs[recs.length - 1];
+    const thr = wx.getStorageSync('thr') || {};
+    let ok = true;
+    try {
+      wx.setStorageSync('ai_ask_ctx', {
+        ctx: {
+          topic: this.data.topic || '',
+          latest: { sh: last.sh, st: last.st, ah: last.ah, at: last.at },
+          lastUpdate: this.data.lastUpdate || '',
+          rssi: null,
+          thr: thr,
+          an: {
+            startDate: this.data.startDate, endDate: this.data.endDate,
+            startTime: this.data.startTime, endTime: this.data.endTime,
+            spanText: this.data.spanText, intervalText: this.data.intervalText,
+            forecast: this.data.forecast, corr: this.data.corr,
+            topLevel: this.data.topLevel, topPct: this.data.topPct
+          },
+          records: slim
+        },
+        question: '请解读这一时段的数据：整体水平、有无异常、未来趋势，并给出灌溉建议。',
+        summary: '本页时段统计 + 抽稀采样 ' + slim.length + ' 条'
+      });
+    } catch (e) { ok = false; }
+    if (!ok) { wx.showToast({ title: '上下文写入失败', icon: 'none' }); return; }
+    wx.navigateTo({ url: '/pages/aiAsk/aiAsk' });
+  },
+
   // 点击趋势图 → 跳转横屏放大页
   onZoomTrend() {
     const key = this.data.curKey;

@@ -54,6 +54,29 @@
   </view>
 
   <view class="card">
+    <view class="title">🤖 AI 助手（后端接入）</view>
+    <view class="desc">AI 由本项目后端（server/server.js）调用，密钥只在服务端，这里只需填后端地址。</view>
+
+    <view class="form-item">
+      <view class="label">后端地址</view>
+      <input class="input" value="{{aiBase}}" bindinput="onAiBaseInput" placeholder="http://192.168.1.9:8080/api/ai" maxlength="200"/>
+    </view>
+
+    <button class="btn btn-save" bindtap="onSaveAi">💾 保存</button>
+    <button class="btn btn-clear" bindtap="onTestAi" disabled="{{aiTesting}}">🔍 {{aiTesting ? '检测中…' : '检测 AI 后端'}}</button>
+
+    <view wx:if="{{aiTestText}}" class="ai-test {{aiTestOk ? 'ai-test-ok' : 'ai-test-err'}}" bindlongpress="onAiTestLongPress">{{aiTestText}}</view>
+
+    <view class="hint">怎么用</view>
+    <view class="hint-list">
+      <view>· 先在电脑上运行：node server/server.js</view>
+      <view>· 手机与电脑连同一 WiFi 时，填电脑的局域网 IP（ipconfig 查看）</view>
+      <view>· 正式上线需在小程序后台「开发管理 → 服务器域名」加入该域名；开发阶段可在开发者工具勾选"不校验合法域名"</view>
+      <view>· 长按检测结果可复制错误信息</view>
+    </view>
+  </view>
+
+  <view class="card">
     <view class="title">关于</view>
     <view class="about-row"><text class="key">版本</text><text>v2.0</text></view>
     <view class="about-row"><text class="key">云平台</text><text>巴法云 bemfa.com</text></view>

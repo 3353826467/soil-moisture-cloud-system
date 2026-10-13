@@ -3,6 +3,7 @@
 
 // pages/settings/settings.js
 const app = getApp();
+const AI = require('../../utils/ai.js');
 
 Page({
   data: {
@@ -10,7 +11,12 @@ Page({
     topic: '',
     pollSec: 30,               // 刷新间隔（秒），与 app.globalData.POLL_MS 同步；默认对齐 ESP32 上报 30s
     cloudBase: '',             // 云端历史（CloudBase getHistory 云函数地址），留空=不启用
-    cloudToken: ''             // 访问令牌，未设置则留空
+    cloudToken: '',            // 访问令牌，未设置则留空
+    // ---- AI 助手（后端接入，不含任何密钥） ----
+    aiBase: '',
+    aiTesting: false,
+    aiTestText: '',
+    aiTestOk: null             // null=未检测 / true=可用 / false=不可用
   },
 
   onLoad() {
@@ -32,7 +38,8 @@ Page({
       topic:   saved.topic || app.globalData.TOPIC || '',
       pollSec: isFinite(pollSec) && pollSec > 0 ? pollSec : 30,
       cloudBase: cloudBase,
-      cloudToken: cloudToken
+      cloudToken: cloudToken,
+      aiBase: AI.getCfg().base
     });
   },
 
@@ -168,5 +175,44 @@ Page({
     wx.setStorageSync('poll_ms', ms);
     app.globalData.POLL_MS = ms;
     wx.showToast({ title: '已保存 ' + sec + ' 秒', icon: 'success' });
+  },
+
+  // ================= AI 助手（后端接入） =================
+  onAiBaseInput(e) { this.setData({ aiBase: e.detail.value.trim() }); },
+
+  onSaveAi() {
+    const b = String(this.data.aiBase || '').trim();
+    if (b && !/^https?:\/\//i.test(b)) {
+      wx.showToast({ title: '地址需 http(s) 开头', icon: 'none' });
+      return;
+    }
+    AI.saveCfg({ base: b });
+    this.setData({ aiBase: b, aiTestOk: null, aiTestText: '' });
+    wx.showToast({ title: b ? '后端地址已保存' : '已清空后端地址', icon: 'success' });
+  },
+
+  // 检测后端能不能通：走的是「小程序 → 后端 → 上游模型」整条链路
+  onTestAi() {
+    if (this.data.aiTesting) return;
+    const self = this;
+    this.setData({ aiTesting: true, aiTestOk: null, aiTestText: '正在检测，请稍候…' });
+    AI.test().then(r => {
+      self.setData({
+        aiTesting: false,
+        aiTestOk: !!r.ok,
+        aiTestText: r.ok
+          ? '✅ 后端可用 · 模型 ' + (r.model || '--') + ' · 往返 ' + r.latency + ' ms' +
+            (r.reply ? '\n模型回信：' + r.reply : '')
+          : '❌ ' + (r.msg || '检测失败')
+      });
+    });
+  },
+
+  onAiTestLongPress() {
+    if (!this.data.aiTestText) return;
+    wx.setClipboardData({
+      data: this.data.aiTestText,
+      success() { wx.showToast({ title: '已复制', icon: 'success' }); }
+    });
   }
 });

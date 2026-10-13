@@ -2,6 +2,7 @@
   "pages": [
     "pages/index/index",
     "pages/analysis/analysis",
+    "pages/aiAsk/aiAsk",
     "pages/trendZoom/trendZoom",
     "pages/settings/settings"
   ],

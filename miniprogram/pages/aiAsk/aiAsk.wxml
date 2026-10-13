@@ -1,0 +1,46 @@
+<view class="page">
+
+  <!-- Backend status bar -->
+  <view class="bar">
+    <view class="bar-title">{{ready ? '已接入后端 · ' + (model || '--') : '未配置 AI 后端'}}</view>
+    <view class="bar-sub" wx:if="{{!ready}}">请到「设置 → AI 助手」填写后端地址</view>
+    <view class="bar-sub" wx:else>{{baseShort}}</view>
+  </view>
+
+  <!-- Question -->
+  <view class="card">
+    <view class="card-title">你的问题</view>
+    <textarea class="q-input" value="{{question}}" bindinput="onQuestionInput" maxlength="300"
+      auto-height placeholder="想问什么？例如：现在需要灌溉吗？" />
+    <button class="btn btn-ask" bindtap="onAsk" loading="{{loading}}" disabled="{{loading}}">
+      {{loading ? '思考中…' : '🤖 再问一次'}}
+    </button>
+  </view>
+
+  <!-- Loading -->
+  <view class="card loading-card" wx:if="{{loading}}">
+    <view class="loading-row">
+      <text class="loading-ico">🧠</text>
+      <text class="loading-text">AI 正在分析数据{{dots}}</text>
+    </view>
+    <view class="tip-sub">推理模型要先想一段再回答，通常 10~40 秒</view>
+  </view>
+
+  <!-- Error -->
+  <view class="card" wx:if="{{error && !loading}}">
+    <text class="err-text">{{error}}</text>
+    <button class="btn btn-clear" bindtap="onGoSettings">⚙️ 去设置</button>
+  </view>
+
+  <!-- Answer -->
+  <view class="card" wx:if="{{answer && !loading}}">
+    <view class="card-head">
+      <text class="card-title">AI 回答</text>
+      <text class="copy" bindtap="onCopy">📋 复制</text>
+    </view>
+    <text class="answer" selectable="true" user-select="true">{{answer}}</text>
+    <view class="ctx-info" wx:if="{{ctxInfo}}">已附带数据上下文：{{ctxInfo}}</view>
+  </view>
+
+  <view class="footer">AI 回答由大模型生成，仅供参考；灌溉、施肥、用药请结合田间实际复核</view>
+</view>

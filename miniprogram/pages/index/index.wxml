@@ -125,6 +125,17 @@
     <view class="entry-arrow">›</view>
   </view>
 
+  <!-- AI 轻量问答：带上当前实时读数，一问一答 -->
+  <view class="ai-ask" bindtap="onAskAi">
+    <text class="ai-ask-ico">🤖</text>
+    <view class="ai-ask-mid">
+      <view class="ai-ask-title">问 AI</view>
+      <view class="ai-ask-sub">带上当前实时数据，问一句就走</view>
+    </view>
+    <text class="ai-ask-arrow">›</text>
+  </view>
+
+
   <!-- 远程控制区（普通按钮） -->
   <view class="control">
     <view class="control-head">
